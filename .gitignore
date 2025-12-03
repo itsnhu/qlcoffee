@@ -1,0 +1,62 @@
+# PharmaManager .gitignore
+
+# Configuration files (if they contain sensitive data)
+# Uncomment if needed:
+# config/database.php
+
+# Test files (should be deleted after testing)
+test_connection.php
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+error_log
+debug.log
+
+# Uploads and user-generated content
+assets/images/uploads/
+assets/images/medicines/
+assets/images/users/
+
+# Temporary files
+tmp/
+temp/
+cache/
+
+# Backup files
+*.bak
+*.backup
+*-backup.sql
+backup/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Composer (if using)
+vendor/
+composer.lock
+
+# Node modules (if using npm)
+node_modules/
+package-lock.json
+
+# OS generated files
+Thumbs.db
+desktop.ini
+
+# PHP-specific
+*.cache
+.phpunit.result.cache
+
+*.md
+*.txt
+*.sh
