@@ -3,6 +3,7 @@
 require_once 'config/config.php';
 require_once 'config/database.php';
 
+// Redirect if already logged in
 if (isLoggedIn()) {
     if (isAdmin()) {
         redirect('/admin/dashboard.php');
@@ -11,52 +12,102 @@ if (isLoggedIn()) {
     }
 }
 
+if (isset($_SESSION['customer_id'])) {
+    header('Location: ' . BASE_URL . '/user/');
+    exit;
+}
+
 $errors = [];
 $username = '';
+$email = '';
+$loginType = $_GET['type'] ?? 'staff';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = sanitize($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $loginType = $_POST['login_type'] ?? 'staff';
 
-    if (empty($username)) {
-        $errors[] = 'Vui lòng nhập tên đăng nhập.';
-    }
+    if ($loginType === 'staff') {
+        // Staff login
+        $username = sanitize($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
 
-    if (empty($password)) {
-        $errors[] = 'Vui lòng nhập mật khẩu.';
-    }
+        if (empty($username)) {
+            $errors[] = 'Vui lòng nhập tên đăng nhập.';
+        }
+        if (empty($password)) {
+            $errors[] = 'Vui lòng nhập mật khẩu.';
+        }
 
-    if (empty($errors)) {
-        try {
-            $sql = "SELECT * FROM users WHERE username = ? AND is_active = 1";
-            $user = fetchOne($pdo, $sql, [$username]);
+        if (empty($errors)) {
+            try {
+                $sql = "SELECT * FROM users WHERE username = ? AND is_active = 1";
+                $user = fetchOne($pdo, $sql, [$username]);
 
-            if ($user && password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['full_name'] = $user['full_name'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['login_time'] = time();
+                if ($user && password_verify($password, $user['password'])) {
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['full_name'] = $user['full_name'];
+                    $_SESSION['role'] = $user['role'];
+                    $_SESSION['login_time'] = time();
 
-                $updateSql = "UPDATE users SET last_login = NOW() WHERE id = ?";
-                executeQuery($pdo, $updateSql, [$user['id']]);
+                    $updateSql = "UPDATE users SET last_login = NOW() WHERE id = ?";
+                    executeQuery($pdo, $updateSql, [$user['id']]);
 
-                setMessage('success', 'Đăng nhập thành công! Chào mừng ' . $user['full_name']);
+                    setMessage('success', 'Đăng nhập thành công! Chào mừng ' . $user['full_name']);
 
-                if ($user['role'] === 'admin') {
-                    redirect('/admin/dashboard.php');
+                    if ($user['role'] === 'admin') {
+                        redirect('/admin/dashboard.php');
+                    } else {
+                        redirect('/employee/dashboard.php');
+                    }
                 } else {
-                    redirect('/employee/dashboard.php');
+                    $errors[] = 'Tên đăng nhập hoặc mật khẩu không đúng.';
                 }
-            } else {
-                $errors[] = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+            } catch (PDOException $e) {
+                error_log("Login Error: " . $e->getMessage());
+                $errors[] = 'Đã xảy ra lỗi. Vui lòng thử lại.';
             }
-        } catch (PDOException $e) {
-            error_log("Login Error: " . $e->getMessage());
-            $errors[] = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+        }
+    } else {
+        // Customer login
+        $email = sanitize($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+
+        if (empty($email)) {
+            $errors[] = 'Vui lòng nhập email.';
+        }
+        if (empty($password)) {
+            $errors[] = 'Vui lòng nhập mật khẩu.';
+        }
+
+        if (empty($errors)) {
+            try {
+                $stmt = $pdo->prepare("SELECT * FROM customers WHERE email = ? AND is_active = 1");
+                $stmt->execute([$email]);
+                $customer = $stmt->fetch();
+
+                if ($customer && password_verify($password, $customer['password'])) {
+                    $_SESSION['customer_id'] = $customer['id'];
+                    $_SESSION['customer_email'] = $customer['email'];
+                    $_SESSION['customer_name'] = $customer['full_name'];
+                    $_SESSION['customer_login_time'] = time();
+
+                    $redirect = $_SESSION['redirect_after_login'] ?? BASE_URL . '/user/';
+                    unset($_SESSION['redirect_after_login']);
+
+                    header('Location: ' . $redirect);
+                    exit;
+                } else {
+                    $errors[] = 'Email hoặc mật khẩu không đúng.';
+                }
+            } catch (PDOException $e) {
+                error_log("Customer Login Error: " . $e->getMessage());
+                $errors[] = 'Đã xảy ra lỗi. Vui lòng thử lại.';
+            }
         }
     }
 }
+
+$message = getMessage();
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -64,23 +115,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Đăng nhập - PharmaManager</title>
-
-    <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
-
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
-
     <style>
         :root {
+            --primary-50: #f0fdfa;
+            --primary-100: #ccfbf1;
+            --primary-200: #99f6e4;
+            --primary-400: #2dd4bf;
             --primary-500: #14b8a6;
             --primary-600: #0d9488;
             --primary-700: #0f766e;
@@ -94,11 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --gray-800: #1e293b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'DM Sans', sans-serif;
@@ -109,7 +151,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             overflow-x: hidden;
         }
 
-        /* Decorative Elements */
         body::before {
             content: '';
             position: absolute;
@@ -121,18 +162,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             pointer-events: none;
         }
 
-        body::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -20%;
-            width: 60%;
-            height: 100%;
-            background: radial-gradient(ellipse at center, rgba(13, 148, 136, 0.08) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        /* Floating Pills Animation */
         .floating-pills {
             position: fixed;
             top: 0;
@@ -147,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .pill {
             position: absolute;
             font-size: 2rem;
-            opacity: 0.15;
+            opacity: 0.12;
             animation: float 20s infinite ease-in-out;
         }
 
@@ -157,6 +186,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .pill:nth-child(4) { top: 60%; right: 10%; animation-delay: 9s; font-size: 2.5rem; }
         .pill:nth-child(5) { bottom: 10%; right: 25%; animation-delay: 12s; }
         .pill:nth-child(6) { top: 40%; left: 15%; animation-delay: 15s; font-size: 1.8rem; }
+        .pill:nth-child(7) { top: 75%; left: 20%; animation-delay: 4s; font-size: 1.3rem; }
+        .pill:nth-child(8) { top: 5%; right: 30%; animation-delay: 8s; font-size: 2.2rem; }
 
         @keyframes float {
             0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -165,7 +196,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             75% { transform: translateY(20px) rotate(-5deg); }
         }
 
-        /* Login Container */
         .login-wrapper {
             display: flex;
             width: 100%;
@@ -174,7 +204,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             z-index: 1;
         }
 
-        /* Left Side - Branding */
         .login-branding {
             flex: 1;
             display: none;
@@ -188,18 +217,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (min-width: 992px) {
-            .login-branding {
-                display: flex;
-            }
+            .login-branding { display: flex; }
         }
 
         .login-branding::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             opacity: 0.5;
         }
@@ -217,10 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 3rem;
         }
 
-        .branding-logo i {
-            font-size: 3.5rem;
-        }
-
+        .branding-logo i { font-size: 3.5rem; }
         .branding-logo span {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 2rem;
@@ -267,7 +288,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.75rem;
         }
 
-        /* Right Side - Form */
         .login-form-section {
             flex: 1;
             display: flex;
@@ -278,27 +298,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .login-card {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             background: white;
             border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
             overflow: hidden;
             animation: slideUp 0.6s ease;
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .login-header {
-            padding: 2.5rem 2.5rem 0;
+            padding: 2rem 2rem 0;
             text-align: center;
         }
 
@@ -312,42 +326,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             font-size: 2rem;
             color: white;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.25rem;
             box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
         }
 
         .login-header h1 {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.75rem;
+            font-size: 1.6rem;
             font-weight: 800;
             color: var(--gray-800);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .login-header p {
             color: var(--gray-500);
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+        }
+
+        /* Login Type Tabs */
+        .login-tabs {
+            display: flex;
+            margin: 1.5rem 2rem 0;
+            background: var(--gray-100);
+            border-radius: 12px;
+            padding: 4px;
+        }
+
+        .login-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .login-tab:hover {
+            color: var(--gray-700);
+        }
+
+        .login-tab.active {
+            background: white;
+            color: var(--primary-600);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .login-tab i {
+            font-size: 1rem;
         }
 
         .login-body {
-            padding: 2rem 2.5rem 2.5rem;
+            padding: 1.5rem 2rem 2rem;
         }
 
-        /* Alert */
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .alert {
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
+            padding: 0.875rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.25rem;
             display: flex;
             align-items: flex-start;
-            gap: 0.75rem;
-            animation: shake 0.5s ease;
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            gap: 0.625rem;
+            font-size: 0.9rem;
         }
 
         .alert-danger {
@@ -356,28 +419,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: 1px solid #fecaca;
         }
 
-        .alert i {
-            font-size: 1.25rem;
-            margin-top: 2px;
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
         }
 
-        /* Form */
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
+        .alert i { font-size: 1.1rem; margin-top: 1px; }
+
+        .form-group { margin-bottom: 1.25rem; }
 
         .form-label {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 600;
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             color: var(--gray-700);
             margin-bottom: 0.5rem;
             display: block;
         }
 
-        .input-group {
-            position: relative;
-        }
+        .input-group { position: relative; }
 
         .input-icon {
             position: absolute;
@@ -385,18 +446,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             top: 50%;
             transform: translateY(-50%);
             color: var(--gray-400);
-            font-size: 1.1rem;
+            font-size: 1rem;
             z-index: 5;
             transition: color 0.2s;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.875rem 1rem 0.875rem 3rem;
+            padding: 0.8rem 1rem 0.8rem 2.75rem;
             font-family: 'DM Sans', sans-serif;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             border: 2px solid var(--gray-200);
-            border-radius: 12px;
+            border-radius: 10px;
             background: var(--gray-50);
             color: var(--gray-700);
             transition: all 0.2s;
@@ -409,16 +470,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
         }
 
-        .form-control:focus + .input-icon,
-        .form-control:not(:placeholder-shown) + .input-icon {
+        .form-control:focus ~ .input-icon {
             color: var(--primary-600);
         }
 
-        .form-control::placeholder {
-            color: var(--gray-400);
-        }
+        .form-control::placeholder { color: var(--gray-400); }
 
-        /* Password Toggle */
         .password-toggle {
             position: absolute;
             right: 1rem;
@@ -433,21 +490,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transition: color 0.2s;
         }
 
-        .password-toggle:hover {
-            color: var(--gray-600);
-        }
+        .password-toggle:hover { color: var(--gray-600); }
 
-        /* Submit Button */
         .btn-login {
             width: 100%;
-            padding: 1rem;
+            padding: 0.9rem;
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: white;
             background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -463,95 +517,112 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
         }
 
-        .btn-login:active {
-            transform: translateY(0);
-        }
-
-        /* Demo Accounts */
         .demo-section {
-            margin-top: 2rem;
-            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
             border-top: 1px solid var(--gray-200);
         }
 
         .demo-title {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: var(--gray-500);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 1rem;
+            margin-bottom: 0.875rem;
             text-align: center;
         }
 
         .demo-accounts {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 0.75rem;
+            gap: 0.625rem;
         }
 
         .demo-account {
-            padding: 0.875rem;
+            padding: 0.75rem;
             background: var(--gray-50);
             border: 1px solid var(--gray-200);
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .demo-account:hover {
-            background: #f0fdfa;
-            border-color: var(--primary-500);
+            background: var(--primary-50);
+            border-color: var(--primary-400);
         }
 
         .demo-account .role {
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 600;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: var(--primary-600);
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.125rem;
         }
 
         .demo-account .credentials {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: var(--gray-600);
         }
 
         .demo-account .credentials code {
             background: white;
-            padding: 0.125rem 0.375rem;
+            padding: 0.1rem 0.3rem;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.65rem;
         }
 
-        /* Footer */
+        .register-link {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.9rem;
+            color: var(--gray-500);
+        }
+
+        .register-link a {
+            color: var(--primary-600);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
         .login-footer {
             text-align: center;
-            padding: 1.5rem;
+            padding: 1.25rem;
             color: var(--gray-500);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
+            border-top: 1px solid var(--gray-100);
         }
 
-        /* Responsive */
+        .back-home {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-500);
+            text-decoration: none;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .back-home:hover {
+            color: var(--primary-600);
+        }
+
         @media (max-width: 480px) {
-            .login-card {
-                border-radius: 20px;
-            }
-
-            .login-header, .login-body {
-                padding-left: 1.5rem;
-                padding-right: 1.5rem;
-            }
-
-            .demo-accounts {
-                grid-template-columns: 1fr;
-            }
+            .login-card { border-radius: 20px; }
+            .login-header, .login-body { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .login-tabs { margin-left: 1.5rem; margin-right: 1.5rem; }
+            .demo-accounts { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-    <!-- Floating Pills Background -->
     <div class="floating-pills">
         <div class="pill">💊</div>
         <div class="pill">💉</div>
@@ -559,119 +630,151 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="pill">💊</div>
         <div class="pill">🏥</div>
         <div class="pill">💊</div>
+        <div class="pill">🩹</div>
+        <div class="pill">💉</div>
     </div>
 
     <div class="login-wrapper">
-        <!-- Left Branding -->
         <div class="login-branding">
             <div class="branding-content">
                 <div class="branding-logo">
                     <i class="bi bi-capsule-pill"></i>
                     <span>PharmaManager</span>
                 </div>
-                <h2 class="branding-title">Quản lý nhà thuốc thông minh & hiệu quả</h2>
+                <h2 class="branding-title">Nhà thuốc trực tuyến uy tín & chuyên nghiệp</h2>
                 <p class="branding-desc">
-                    Giải pháp toàn diện giúp bạn quản lý kho thuốc, theo dõi doanh thu,
-                    và tối ưu hóa hoạt động kinh doanh nhà thuốc.
+                    Hệ thống quản lý nhà thuốc hiện đại, kết hợp bán hàng trực tuyến.
+                    Đa dạng thuốc chính hãng với giá cả hợp lý.
                 </p>
                 <ul class="branding-features">
-                    <li>
-                        <i class="bi bi-check"></i>
-                        Quản lý kho thuốc & theo dõi hạn sử dụng
-                    </li>
-                    <li>
-                        <i class="bi bi-check"></i>
-                        Bán hàng nhanh chóng, in hóa đơn tự động
-                    </li>
-                    <li>
-                        <i class="bi bi-check"></i>
-                        Báo cáo doanh thu chi tiết theo ngày/tháng
-                    </li>
-                    <li>
-                        <i class="bi bi-check"></i>
-                        Phân quyền Admin & Nhân viên linh hoạt
-                    </li>
+                    <li><i class="bi bi-check"></i>Thuốc chính hãng, nguồn gốc rõ ràng</li>
+                    <li><i class="bi bi-check"></i>Giao hàng nhanh, thanh toán COD</li>
+                    <li><i class="bi bi-check"></i>Tư vấn dược sĩ chuyên nghiệp</li>
+                    <li><i class="bi bi-check"></i>Quản lý đơn hàng tiện lợi</li>
                 </ul>
             </div>
         </div>
 
-        <!-- Right Form -->
         <div class="login-form-section">
             <div class="login-card">
                 <div class="login-header">
+                    <a href="<?= BASE_URL ?>/user/" class="back-home">
+                        <i class="bi bi-arrow-left"></i>Về trang chủ
+                    </a>
                     <div class="logo-icon">
                         <i class="bi bi-capsule-pill"></i>
                     </div>
-                    <h1>Chào mừng trở lại!</h1>
+                    <h1>Chào mừng!</h1>
                     <p>Đăng nhập để tiếp tục</p>
                 </div>
 
+                <div class="login-tabs">
+                    <button type="button" class="login-tab <?= $loginType === 'customer' ? 'active' : '' ?>" onclick="switchTab('customer')">
+                        <i class="bi bi-person"></i>Khách hàng
+                    </button>
+                    <button type="button" class="login-tab <?= $loginType === 'staff' ? 'active' : '' ?>" onclick="switchTab('staff')">
+                        <i class="bi bi-person-badge"></i>Nhân viên
+                    </button>
+                </div>
+
                 <div class="login-body">
+                    <?php if ($message): ?>
+                        <div class="alert alert-<?= $message['type'] ?>">
+                            <i class="bi bi-<?= $message['type'] === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill' ?>"></i>
+                            <div><?= htmlspecialchars($message['text']) ?></div>
+                        </div>
+                    <?php endif; ?>
+
                     <?php if (!empty($errors)): ?>
                         <div class="alert alert-danger">
                             <i class="bi bi-exclamation-circle-fill"></i>
                             <div>
                                 <?php foreach ($errors as $error): ?>
-                                    <div><?php echo htmlspecialchars($error); ?></div>
+                                    <div><?= htmlspecialchars($error) ?></div>
                                 <?php endforeach; ?>
                             </div>
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST" action="">
-                        <div class="form-group">
-                            <label class="form-label">Tên đăng nhập</label>
-                            <div class="input-group">
-                                <input
-                                    type="text"
-                                    name="username"
-                                    class="form-control"
-                                    placeholder="Nhập tên đăng nhập"
-                                    value="<?php echo htmlspecialchars($username); ?>"
-                                    required
-                                    autofocus
-                                >
-                                <i class="bi bi-person input-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Mật khẩu</label>
-                            <div class="input-group">
-                                <input
-                                    type="password"
-                                    name="password"
-                                    id="password"
-                                    class="form-control"
-                                    placeholder="Nhập mật khẩu"
-                                    required
-                                >
-                                <i class="bi bi-lock input-icon"></i>
-                                <button type="button" class="password-toggle" onclick="togglePassword()">
-                                    <i class="bi bi-eye" id="toggleIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-login">
-                            <i class="bi bi-box-arrow-in-right"></i>
-                            Đăng nhập
-                        </button>
-                    </form>
-
-                    <div class="demo-section">
-                        <div class="demo-title">Tài khoản demo</div>
-                        <div class="demo-accounts">
-                            <div class="demo-account" onclick="fillDemo('admin', 'admin123')">
-                                <div class="role">👨‍💼 Admin</div>
-                                <div class="credentials">
-                                    <code>admin</code> / <code>admin123</code>
+                    <!-- Customer Login Form -->
+                    <div class="form-panel <?= $loginType === 'customer' ? 'active' : '' ?>" id="customer-panel">
+                        <form method="POST" action="">
+                            <input type="hidden" name="login_type" value="customer">
+                            <div class="form-group">
+                                <label class="form-label">Email</label>
+                                <div class="input-group">
+                                    <input type="email" name="email" class="form-control" placeholder="Nhập địa chỉ email" value="<?= htmlspecialchars($email) ?>" required>
+                                    <i class="bi bi-envelope input-icon"></i>
                                 </div>
                             </div>
-                            <div class="demo-account" onclick="fillDemo('nhanvien', 'admin123')">
-                                <div class="role">👩‍⚕️ Nhân viên</div>
-                                <div class="credentials">
-                                    <code>nhanvien</code> / <code>admin123</code>
+                            <div class="form-group">
+                                <label class="form-label">Mật khẩu</label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="customer-password" class="form-control" placeholder="Nhập mật khẩu" required>
+                                    <i class="bi bi-lock input-icon"></i>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('customer-password', 'customer-toggle')">
+                                        <i class="bi bi-eye" id="customer-toggle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-login">
+                                <i class="bi bi-box-arrow-in-right"></i>Đăng nhập
+                            </button>
+                        </form>
+
+                        <div class="register-link">
+                            Chưa có tài khoản? <a href="<?= BASE_URL ?>/register.php">Đăng ký ngay</a>
+                        </div>
+
+                        <div class="demo-section">
+                            <div class="demo-title">Tài khoản demo</div>
+                            <div class="demo-accounts">
+                                <div class="demo-account" onclick="fillCustomerDemo('khachhang@gmail.com', 'admin123')">
+                                    <div class="role">👤 Khách hàng</div>
+                                    <div class="credentials">
+                                        <code>khachhang@gmail.com</code>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Staff Login Form -->
+                    <div class="form-panel <?= $loginType === 'staff' ? 'active' : '' ?>" id="staff-panel">
+                        <form method="POST" action="">
+                            <input type="hidden" name="login_type" value="staff">
+                            <div class="form-group">
+                                <label class="form-label">Tên đăng nhập</label>
+                                <div class="input-group">
+                                    <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập" value="<?= htmlspecialchars($username) ?>" required>
+                                    <i class="bi bi-person input-icon"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Mật khẩu</label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="staff-password" class="form-control" placeholder="Nhập mật khẩu" required>
+                                    <i class="bi bi-lock input-icon"></i>
+                                    <button type="button" class="password-toggle" onclick="togglePassword('staff-password', 'staff-toggle')">
+                                        <i class="bi bi-eye" id="staff-toggle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-login">
+                                <i class="bi bi-box-arrow-in-right"></i>Đăng nhập
+                            </button>
+                        </form>
+
+                        <div class="demo-section">
+                            <div class="demo-title">Tài khoản demo</div>
+                            <div class="demo-accounts">
+                                <div class="demo-account" onclick="fillStaffDemo('admin', 'admin123')">
+                                    <div class="role">👨‍💼 Admin</div>
+                                    <div class="credentials"><code>admin</code> / <code>admin123</code></div>
+                                </div>
+                                <div class="demo-account" onclick="fillStaffDemo('nhanvien', 'admin123')">
+                                    <div class="role">👩‍⚕️ Nhân viên</div>
+                                    <div class="credentials"><code>nhanvien</code> / <code>admin123</code></div>
                                 </div>
                             </div>
                         </div>
@@ -679,32 +782,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="login-footer">
-                    &copy; <?php echo date('Y'); ?> PharmaManager. All rights reserved.
+                    &copy; <?= date('Y') ?> PharmaManager. All rights reserved.
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        function togglePassword() {
-            const password = document.getElementById('password');
-            const toggleIcon = document.getElementById('toggleIcon');
+        function switchTab(type) {
+            document.querySelectorAll('.login-tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.form-panel').forEach(panel => panel.classList.remove('active'));
 
-            if (password.type === 'password') {
-                password.type = 'text';
-                toggleIcon.classList.remove('bi-eye');
-                toggleIcon.classList.add('bi-eye-slash');
+            document.querySelector(`.login-tab:nth-child(${type === 'customer' ? 1 : 2})`).classList.add('active');
+            document.getElementById(type + '-panel').classList.add('active');
+        }
+
+        function togglePassword(inputId, iconId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.replace('bi-eye', 'bi-eye-slash');
             } else {
-                password.type = 'password';
-                toggleIcon.classList.remove('bi-eye-slash');
-                toggleIcon.classList.add('bi-eye');
+                input.type = 'password';
+                icon.classList.replace('bi-eye-slash', 'bi-eye');
             }
         }
 
-        function fillDemo(username, password) {
-            document.querySelector('input[name="username"]').value = username;
-            document.querySelector('input[name="password"]').value = password;
-            document.querySelector('input[name="username"]').focus();
+        function fillStaffDemo(username, password) {
+            document.querySelector('#staff-panel input[name="username"]').value = username;
+            document.querySelector('#staff-panel input[name="password"]').value = password;
+        }
+
+        function fillCustomerDemo(email, password) {
+            document.querySelector('#customer-panel input[name="email"]').value = email;
+            document.querySelector('#customer-panel input[name="password"]').value = password;
         }
     </script>
 </body>

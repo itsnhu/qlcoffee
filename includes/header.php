@@ -109,6 +109,18 @@ $userInitial = strtoupper(substr($userName, 0, 1));
                                 </a>
                             </li>
 
+                            <li class="nav-item">
+                                <a class="nav-link" href="<?php echo BASE_URL; ?>/admin/orders/index.php">
+                                    <i class="bi bi-bag-check"></i> Đơn hàng Online
+                                    <?php
+                                    $pendingOrders = fetchOne($pdo, "SELECT COUNT(*) as count FROM orders WHERE status = 'pending'")['count'] ?? 0;
+                                    if ($pendingOrders > 0):
+                                    ?>
+                                        <span class="badge bg-danger rounded-pill"><?php echo $pendingOrders; ?></span>
+                                    <?php endif; ?>
+                                </a>
+                            </li>
+
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="bi bi-bar-chart-fill"></i> Báo cáo
