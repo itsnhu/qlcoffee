@@ -4,7 +4,7 @@ require_once 'config/database.php';
 
 // Redirect if already logged in
 if (isset($_SESSION['customer_id'])) {
-    header('Location: ' . BASE_URL . '/user/');
+    header('Location: ' . BASE_URL);
     exit;
 }
 
@@ -75,532 +75,276 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng ký - PharmaManager</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    <title>Đăng ký - Coffee Manager</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css">
+    
+    <link rel="stylesheet" href="globals.css">
+    <link rel="stylesheet" href="style.css">
+    
     <style>
-        :root {
-            --primary-50: #f0fdfa;
-            --primary-100: #ccfbf1;
-            --primary-200: #99f6e4;
-            --primary-400: #2dd4bf;
-            --primary-500: #14b8a6;
-            --primary-600: #0d9488;
-            --primary-700: #0f766e;
-            --gray-50: #f8fafc;
-            --gray-100: #f1f5f9;
-            --gray-200: #e2e8f0;
-            --gray-400: #94a3b8;
-            --gray-500: #64748b;
-            --gray-600: #475569;
-            --gray-700: #334155;
-            --gray-800: #1e293b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
-            font-family: 'DM Sans', sans-serif;
+            background-color: var(--color-beige);
+            background-image: radial-gradient(circle at 20% 20%, rgba(198, 168, 124, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 80% 80%, rgba(44, 24, 16, 0.03) 0%, transparent 40%);
             min-height: 100vh;
             display: flex;
-            background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 50%, #99f6e4 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 80%;
-            height: 150%;
-            background: radial-gradient(ellipse at center, rgba(20, 184, 166, 0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .floating-pills {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .pill {
-            position: absolute;
-            font-size: 2rem;
-            opacity: 0.12;
-            animation: float 20s infinite ease-in-out;
-        }
-
-        .pill:nth-child(1) { top: 10%; left: 10%; animation-delay: 0s; }
-        .pill:nth-child(2) { top: 20%; right: 15%; animation-delay: 3s; font-size: 1.5rem; }
-        .pill:nth-child(3) { bottom: 30%; left: 5%; animation-delay: 6s; }
-        .pill:nth-child(4) { top: 60%; right: 10%; animation-delay: 9s; font-size: 2.5rem; }
-        .pill:nth-child(5) { bottom: 10%; right: 25%; animation-delay: 12s; }
-        .pill:nth-child(6) { top: 40%; left: 15%; animation-delay: 15s; font-size: 1.8rem; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            25% { transform: translateY(-20px) rotate(5deg); }
-            50% { transform: translateY(0) rotate(0deg); }
-            75% { transform: translateY(20px) rotate(-5deg); }
-        }
-
-        .register-wrapper {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        .register-branding {
-            flex: 1;
-            display: none;
-            padding: 3rem;
-            background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-            color: white;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        @media (min-width: 992px) {
-            .register-branding { display: flex; }
-        }
-
-        .register-branding::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            opacity: 0.5;
-        }
-
-        .branding-content {
-            position: relative;
-            z-index: 1;
-            max-width: 480px;
-        }
-
-        .branding-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 3rem;
-        }
-
-        .branding-logo i { font-size: 3.5rem; }
-        .branding-logo span {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .branding-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 2.25rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-        }
-
-        .branding-desc {
-            font-size: 1.05rem;
-            opacity: 0.9;
-            line-height: 1.7;
-            margin-bottom: 2rem;
-        }
-
-        .branding-benefits {
-            list-style: none;
-            padding: 0;
-        }
-
-        .branding-benefits li {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.6rem 0;
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-
-        .branding-benefits i {
-            width: 22px;
-            height: 22px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 50%;
-            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            padding: 2rem 1rem;
         }
-
-        .register-form-section {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
+        
         .register-card {
-            width: 100%;
-            max-width: 480px;
             background: white;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-            overflow: hidden;
-            animation: slideUp 0.6s ease;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 30px;
+            box-shadow: var(--shadow-lg);
+            padding: 3.5rem;
+            position: relative;
+            animation: fadeIn 0.6s ease-out;
         }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        .register-header {
-            padding: 1.75rem 2rem 0;
-            text-align: center;
-        }
-
-        .register-header .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
-            border-radius: 18px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.75rem;
-            color: white;
-            margin-bottom: 1rem;
-            box-shadow: 0 10px 30px rgba(20, 184, 166, 0.3);
-        }
-
-        .register-header h1 {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--gray-800);
-            margin-bottom: 0.25rem;
-        }
-
-        .register-header p {
-            color: var(--gray-500);
-            font-size: 0.85rem;
-        }
-
-        .register-body {
-            padding: 1.5rem 2rem 2rem;
-        }
-
-        .alert {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1rem;
+        
+        .back-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            color: var(--color-coffee-dark);
+            text-decoration: none;
             display: flex;
-            align-items: flex-start;
+            align-items: center;
             gap: 0.5rem;
-            font-size: 0.85rem;
-        }
-
-        .alert-danger {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
-        }
-
-        .alert i { font-size: 1rem; margin-top: 1px; }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        @media (max-width: 480px) {
-            .form-row { grid-template-columns: 1fr; }
-        }
-
-        .form-group { margin-bottom: 1rem; }
-
-        .form-label {
-            font-family: 'Plus Jakarta Sans', sans-serif;
             font-weight: 600;
+            padding: 0.6rem 1.2rem;
+            background: var(--color-beige);
+            border-radius: var(--radius-pill);
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .back-btn:hover {
+            background: var(--color-coffee-dark);
+            color: white;
+            transform: translateX(-5px);
+        }
+        
+        .form-label-premium {
             font-size: 0.75rem;
-            color: var(--gray-700);
-            margin-bottom: 0.4rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--color-text-muted);
+            margin-bottom: 0.6rem;
             display: block;
         }
-
-        .input-group { position: relative; }
-
-        .input-icon {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray-400);
-            font-size: 0.9rem;
-            z-index: 5;
-            transition: color 0.2s;
+        
+        .input-group-premium {
+            background: var(--color-beige);
+            border-radius: 12px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
         }
-
-        .form-control {
-            width: 100%;
-            padding: 0.7rem 0.875rem 0.7rem 2.5rem;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 0.85rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 10px;
-            background: var(--gray-50);
-            color: var(--gray-700);
-            transition: all 0.2s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-500);
+        
+        .input-group-premium:focus-within {
             background: white;
-            box-shadow: 0 0 0 4px rgba(20, 184, 166, 0.1);
+            border-color: var(--color-gold);
+            box-shadow: 0 0 0 4px rgba(198, 168, 124, 0.1);
+        }
+        
+        .input-group-premium .input-group-text {
+            background: transparent;
+            border: none;
+            padding-left: 1.2rem;
+            color: var(--color-coffee-light);
+            font-size: 1.1rem;
+        }
+        
+        .input-group-premium .form-control {
+            background: transparent;
+            border: none;
+            padding: 1rem 1.2rem 1rem 0.5rem;
+            font-size: 1rem;
+            color: var(--color-coffee-dark);
         }
 
-        .form-control:focus ~ .input-icon {
-            color: var(--primary-600);
+        .input-group-premium .form-control::placeholder {
+            color: #A0A0A0;
+            font-weight: 400;
         }
 
-        .form-control.is-invalid {
-            border-color: #ef4444;
-        }
-
-        .form-control::placeholder { color: var(--gray-400); }
-
-        .invalid-feedback {
-            color: #dc2626;
-            font-size: 0.75rem;
-            margin-top: 0.25rem;
+        .input-group-premium .form-control:focus {
+            box-shadow: none;
         }
 
         .btn-register {
-            width: 100%;
-            padding: 0.85rem;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 700;
-            font-size: 0.9rem;
+            background: #BFA27E; /* Custom gold/tan color from image */
             color: white;
-            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
             border: none;
-            border-radius: 10px;
-            cursor: pointer;
+            border-radius: var(--radius-pill);
+            padding: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.3);
-            margin-top: 0.5rem;
+            gap: 10px;
+            margin-top: 2rem;
+            width: 100%;
+            box-shadow: 0 10px 20px rgba(191, 162, 126, 0.2);
         }
 
         .btn-register:hover {
-            background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+            background: var(--color-coffee-dark);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(20, 184, 166, 0.4);
+            box-shadow: 0 15px 30px rgba(44, 24, 16, 0.2);
+            color: white;
         }
 
         .login-link {
-            text-align: center;
-            margin-top: 1.25rem;
-            font-size: 0.85rem;
-            color: var(--gray-500);
-        }
-
-        .login-link a {
-            color: var(--primary-600);
-            font-weight: 600;
+            color: var(--color-coffee-dark);
             text-decoration: none;
+            font-weight: 700;
+            transition: 0.3s;
         }
 
-        .login-link a:hover {
-            text-decoration: underline;
+        .login-link:hover {
+            color: var(--color-gold);
         }
 
-        .register-footer {
-            text-align: center;
-            padding: 1rem;
-            color: var(--gray-500);
-            font-size: 0.75rem;
-            border-top: 1px solid var(--gray-100);
-        }
-
-        .back-home {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--gray-500);
-            text-decoration: none;
-            font-size: 0.8rem;
-            margin-bottom: 0.5rem;
-            transition: color 0.2s;
-        }
-
-        .back-home:hover {
-            color: var(--primary-600);
+        @media (max-width: 768px) {
+            .register-card {
+                padding: 2rem 1.5rem;
+                border-radius: 20px;
+            }
+            .back-btn {
+                position: static;
+                margin-bottom: 2rem;
+                display: inline-flex;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="floating-pills">
-        <div class="pill">💊</div>
-        <div class="pill">💉</div>
-        <div class="pill">🩺</div>
-        <div class="pill">💊</div>
-        <div class="pill">🏥</div>
-        <div class="pill">💊</div>
-    </div>
+    <div class="register-card">
+        <a href="index.php" class="back-btn shadow-sm">
+            <i class="bi bi-arrow-left"></i> Trang chủ
+        </a>
 
-    <div class="register-wrapper">
-        <div class="register-branding">
-            <div class="branding-content">
-                <div class="branding-logo">
-                    <i class="bi bi-capsule-pill"></i>
-                    <span>PharmaManager</span>
-                </div>
-                <h2 class="branding-title">Tạo tài khoản để mua sắm dễ dàng hơn</h2>
-                <p class="branding-desc">
-                    Đăng ký thành viên để nhận nhiều ưu đãi độc quyền và trải nghiệm mua sắm thuốc trực tuyến thuận tiện nhất.
-                </p>
-                <ul class="branding-benefits">
-                    <li><i class="bi bi-check"></i>Theo dõi đơn hàng mọi lúc mọi nơi</li>
-                    <li><i class="bi bi-check"></i>Lưu địa chỉ giao hàng nhanh chóng</li>
-                    <li><i class="bi bi-check"></i>Nhận thông báo khuyến mãi độc quyền</li>
-                    <li><i class="bi bi-check"></i>Xem lịch sử mua hàng chi tiết</li>
-                    <li><i class="bi bi-check"></i>Tích điểm thành viên với mỗi đơn hàng</li>
-                </ul>
-            </div>
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold mb-2">Đăng Ký Tài Khoản</h1>
         </div>
 
-        <div class="register-form-section">
-            <div class="register-card">
-                <div class="register-header">
-                    <a href="<?= BASE_URL ?>/user/" class="back-home">
-                        <i class="bi bi-arrow-left"></i>Về trang chủ
-                    </a>
-                    <div class="logo-icon">
-                        <i class="bi bi-person-plus"></i>
+        <?php if (isset($errors['general'])): ?>
+            <div class="alert alert-danger border-0 rounded-4 shadow-sm mb-4 p-3">
+                <i class="bi bi-exclamation-circle-fill me-2"></i>
+                <?php echo htmlspecialchars($errors['general']); ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" action="">
+            <!-- Full Name -->
+            <div class="mb-4">
+                <label class="form-label-premium">Họ và tên <span class="text-danger">*</span></label>
+                <div class="input-group-premium <?php echo isset($errors['full_name']) ? 'border-danger' : ''; ?>">
+                    <span class="input-group-text"><i class="bi bi-person"></i></span>
+                    <input type="text" class="form-control" name="full_name" 
+                           value="<?php echo htmlspecialchars($old['full_name'] ?? ''); ?>" placeholder="Nhập họ và tên của bạn">
+                </div>
+                <?php if (isset($errors['full_name'])): ?>
+                    <div class="text-danger small mt-2 ms-1"><?php echo htmlspecialchars($errors['full_name']); ?></div>
+                <?php endif; ?>
+            </div>
+
+            <div class="row">
+                <!-- Email -->
+                <div class="col-md-6 mb-4">
+                    <label class="form-label-premium">Email <span class="text-danger">*</span></label>
+                    <div class="input-group-premium <?php echo isset($errors['email']) ? 'border-danger' : ''; ?>">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        <input type="email" class="form-control" name="email" 
+                               value="<?php echo htmlspecialchars($old['email'] ?? ''); ?>" 
+                               placeholder="Nhập địa chỉ email">
                     </div>
-                    <h1>Tạo tài khoản mới</h1>
-                    <p>Điền thông tin để đăng ký</p>
-                </div>
-
-                <div class="register-body">
-                    <?php if (isset($errors['general'])): ?>
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-circle-fill"></i>
-                            <div><?= $errors['general'] ?></div>
-                        </div>
+                    <?php if (isset($errors['email'])): ?>
+                        <div class="text-danger small mt-2 ms-1"><?php echo htmlspecialchars($errors['email']); ?></div>
                     <?php endif; ?>
-
-                    <form method="POST" action="">
-                        <div class="form-group">
-                            <label class="form-label">Họ và tên <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <input type="text" class="form-control <?= isset($errors['full_name']) ? 'is-invalid' : '' ?>"
-                                       name="full_name" value="<?= htmlspecialchars($old['full_name'] ?? '') ?>" placeholder="Nguyễn Văn A">
-                                <i class="bi bi-person input-icon"></i>
-                            </div>
-                            <?php if (isset($errors['full_name'])): ?>
-                                <div class="invalid-feedback d-block"><?= $errors['full_name'] ?></div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Email <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="email" class="form-control <?= isset($errors['email']) ? 'is-invalid' : '' ?>"
-                                           name="email" value="<?= htmlspecialchars($old['email'] ?? '') ?>" placeholder="email@example.com">
-                                    <i class="bi bi-envelope input-icon"></i>
-                                </div>
-                                <?php if (isset($errors['email'])): ?>
-                                    <div class="invalid-feedback d-block"><?= $errors['email'] ?></div>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="tel" class="form-control <?= isset($errors['phone']) ? 'is-invalid' : '' ?>"
-                                           name="phone" value="<?= htmlspecialchars($old['phone'] ?? '') ?>" placeholder="0901234567">
-                                    <i class="bi bi-phone input-icon"></i>
-                                </div>
-                                <?php if (isset($errors['phone'])): ?>
-                                    <div class="invalid-feedback d-block"><?= $errors['phone'] ?></div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label">Địa chỉ</label>
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="address"
-                                       value="<?= htmlspecialchars($old['address'] ?? '') ?>" placeholder="123 Đường ABC, Quận 1, TP.HCM">
-                                <i class="bi bi-geo-alt input-icon"></i>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Mật khẩu <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control <?= isset($errors['password']) ? 'is-invalid' : '' ?>"
-                                           name="password" placeholder="Tối thiểu 6 ký tự">
-                                    <i class="bi bi-lock input-icon"></i>
-                                </div>
-                                <?php if (isset($errors['password'])): ?>
-                                    <div class="invalid-feedback d-block"><?= $errors['password'] ?></div>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Xác nhận mật khẩu <span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="password" class="form-control <?= isset($errors['password_confirm']) ? 'is-invalid' : '' ?>"
-                                           name="password_confirm" placeholder="Nhập lại mật khẩu">
-                                    <i class="bi bi-lock-fill input-icon"></i>
-                                </div>
-                                <?php if (isset($errors['password_confirm'])): ?>
-                                    <div class="invalid-feedback d-block"><?= $errors['password_confirm'] ?></div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn-register">
-                            <i class="bi bi-person-plus"></i>Đăng ký tài khoản
-                        </button>
-
-                        <div class="login-link">
-                            Đã có tài khoản? <a href="<?= BASE_URL ?>/login.php?type=customer">Đăng nhập ngay</a>
-                        </div>
-                    </form>
                 </div>
-
-                <div class="register-footer">
-                    &copy; <?= date('Y') ?> PharmaManager. All rights reserved.
+                <!-- Phone -->
+                <div class="col-md-6 mb-4">
+                    <label class="form-label-premium">Số điện thoại <span class="text-danger">*</span></label>
+                    <div class="input-group-premium <?php echo isset($errors['phone']) ? 'border-danger' : ''; ?>">
+                        <span class="input-group-text"><i class="bi bi-phone"></i></span>
+                        <input type="tel" class="form-control" name="phone" 
+                               value="<?php echo htmlspecialchars($old['phone'] ?? ''); ?>" 
+                               placeholder="Nhập số điện thoại">
+                    </div>
+                    <?php if (isset($errors['phone'])): ?>
+                        <div class="text-danger small mt-2 ms-1"><?php echo htmlspecialchars($errors['phone']); ?></div>
+                    <?php endif; ?>
                 </div>
             </div>
-        </div>
+
+            <!-- Address -->
+            <div class="mb-4">
+                <label class="form-label-premium">Địa chỉ</label>
+                <div class="input-group-premium">
+                    <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                    <input type="text" class="form-control" name="address"
+                           value="<?php echo htmlspecialchars($old['address'] ?? ''); ?>" placeholder="Số nhà, đường, phường/xã...">
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Password -->
+                <div class="col-md-6 mb-4">
+                    <label class="form-label-premium">Mật khẩu <span class="text-danger">*</span></label>
+                    <div class="input-group-premium <?php echo isset($errors['password']) ? 'border-danger' : ''; ?>">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        <input type="password" class="form-control" name="password" placeholder="Nhập ít nhất 6 ký tự">
+                    </div>
+                    <?php if (isset($errors['password'])): ?>
+                        <div class="text-danger small mt-2 ms-1"><?php echo htmlspecialchars($errors['password']); ?></div>
+                    <?php endif; ?>
+                </div>
+                <!-- Confirm Password -->
+                <div class="col-md-6 mb-4">
+                    <label class="form-label-premium">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                    <div class="input-group-premium <?php echo isset($errors['password_confirm']) ? 'border-danger' : ''; ?>">
+                        <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                        <input type="password" class="form-control" name="password_confirm" placeholder="Xác nhận lại mật khẩu">
+                    </div>
+                    <?php if (isset($errors['password_confirm'])): ?>
+                        <div class="text-danger small mt-2 ms-1"><?php echo htmlspecialchars($errors['password_confirm']); ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register shadow-sm mb-4">
+                <i class="bi bi-person-plus-fill"></i> ĐĂNG KÝ NGAY
+            </button>
+
+            <div class="text-center">
+                <span class="text-muted">Đã có tài khoản?</span>
+                <a href="login.php?type=customer" class="login-link ms-1">Đăng nhập ngay</a>
+            </div>
+        </form>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

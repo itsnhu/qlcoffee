@@ -12,11 +12,11 @@ requireAdmin();
 
 try {
     $suppliers = fetchAll($pdo, "SELECT id, name FROM suppliers ORDER BY name ASC");
-    $medicines = fetchAll($pdo, "SELECT id, name, code, price, unit FROM medicines ORDER BY name ASC");
+    $products = fetchAll($pdo, "SELECT id, name, code, price, unit FROM products ORDER BY name ASC");
 } catch (PDOException $e) {
     error_log("Load Data Error: " . $e->getMessage());
     $suppliers = [];
-    $medicines = [];
+    $products = [];
 }
 
 
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $supplier_id = $_POST['supplier_id'] ?? '';
     $note = trim($_POST['note'] ?? '');
-    $medicine_ids = $_POST['medicine_id'] ?? [];
+    $product_ids = $_POST['product_id'] ?? [];
     $quantities = $_POST['quantity'] ?? [];
     $prices = $_POST['price'] ?? [];
 
@@ -35,16 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = 'Vui lòng chọn nhà cung cấp.';
     }
 
-    if (empty($medicine_ids) || count($medicine_ids) === 0) {
-        $errors[] = 'Vui lòng thêm ít nhất một thuốc vào phiếu nhập.';
+    if (empty($product_ids) || count($product_ids) === 0) {
+        $errors[] = 'Vui lòng thêm ít nhất một món vào phiếu nhập.';
     }
 
     
     $import_details = [];
     $total_amount = 0;
 
-    foreach ($medicine_ids as $index => $medicine_id) {
-        if (empty($medicine_id) || !is_numeric($medicine_id)) {
+    foreach ($product_ids as $index => $product_id) {
+        if (empty($product_id) || !is_numeric($product_id)) {
             continue; 
         }
 
@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $total_amount += $subtotal;
 
         $import_details[] = [
-            'medicine_id' => $medicine_id,
+            'product_id' => $product_id,
             'quantity' => $quantity,
             'price' => $price,
             'subtotal' => $subtotal
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($import_details)) {
-        $errors[] = 'Không có thuốc hợp lệ nào trong phiếu nhập.';
+        $errors[] = 'Không có món hợp lệ nào trong phiếu nhập.';
     }
 
     
@@ -103,12 +103,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             foreach ($import_details as $detail) {
                 
-                $sql = "INSERT INTO import_details (import_id, medicine_id, quantity, price, subtotal)
+                $sql = "INSERT INTO import_details (import_id, product_id, quantity, price, subtotal)
                         VALUES (?, ?, ?, ?, ?)";
 
                 $params = [
                     $import_id,
-                    $detail['medicine_id'],
+                    $detail['product_id'],
                     $detail['quantity'],
                     $detail['price'],
                     $detail['subtotal']
@@ -117,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 executeQuery($pdo, $sql, $params);
 
                 
-                $sql = "UPDATE medicines SET quantity = quantity + ? WHERE id = ?";
-                executeQuery($pdo, $sql, [$detail['quantity'], $detail['medicine_id']]);
+                $sql = "UPDATE products SET quantity = quantity + ? WHERE id = ?";
+                executeQuery($pdo, $sql, [$detail['quantity'], $detail['product_id']]);
             }
 
             
@@ -140,7 +140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $pageTitle = 'Tạo phiếu nhập mới';
 $additionalCSS = '
 <style>
-    .medicine-row {
+    .item-row {
         background-color: #f8f9fa;
         padding: 15px;
         margin-bottom: 10px;
@@ -245,27 +245,27 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
             <div class="card shadow-sm mb-3">
                 <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
                     <div>
-                        <i class="bi bi-capsule-pill me-2"></i>
-                        <strong>Danh sách thuốc nhập</strong>
+                        <i class="bi bi-cup-hot-fill me-2"></i>
+                        <strong>Danh sách món nhập</strong>
                     </div>
                     <button type="button" class="btn btn-light btn-sm" id="addRowBtn">
-                        <i class="bi bi-plus-circle"></i> Thêm thuốc
+                        <i class="bi bi-plus-circle"></i> Thêm món
                     </button>
                 </div>
                 <div class="card-body">
-                    <div id="medicineRows">
+                    <div id="itemRows">
                         <!-- Dòng đầu tiên -->
-                        <div class="medicine-row" data-row="1">
+                        <div class="item-row" data-row="1">
                             <div class="row align-items-end">
                                 <div class="col-md-4 mb-2">
-                                    <label class="form-label">Thuốc <span class="text-danger">*</span></label>
-                                    <select class="form-select medicine-select" name="medicine_id[]" required>
-                                        <option value="">-- Chọn thuốc --</option>
-                                        <?php foreach ($medicines as $medicine): ?>
-                                            <option value="<?php echo $medicine['id']; ?>"
-                                                    data-price="<?php echo $medicine['price']; ?>"
-                                                    data-unit="<?php echo $medicine['unit']; ?>">
-                                                <?php echo htmlspecialchars($medicine['code'] . ' - ' . $medicine['name']); ?>
+                                    <label class="form-label">Món <span class="text-danger">*</span></label>
+                                    <select class="form-select item-select" name="product_id[]" required>
+                                        <option value="">-- Chọn món --</option>
+                                        <?php foreach ($products as $product): ?>
+                                            <option value="<?php echo $product['id']; ?>"
+                                                    data-price="<?php echo $product['price']; ?>"
+                                                    data-unit="<?php echo $product['unit']; ?>">
+                                                <?php echo htmlspecialchars($product['code'] . ' - ' . $product['name']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -340,19 +340,19 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
     </div>
 </form>
 
-<!-- Template cho dòng thuốc mới -->
-<template id="medicineRowTemplate">
-    <div class="medicine-row">
+<!-- Template cho dòng món mới -->
+<template id="itemRowTemplate">
+    <div class="item-row">
         <div class="row align-items-end">
             <div class="col-md-4 mb-2">
-                <label class="form-label">Thuốc <span class="text-danger">*</span></label>
-                <select class="form-select medicine-select" name="medicine_id[]" required>
-                    <option value="">-- Chọn thuốc --</option>
-                    <?php foreach ($medicines as $medicine): ?>
-                        <option value="<?php echo $medicine['id']; ?>"
-                                data-price="<?php echo $medicine['price']; ?>"
-                                data-unit="<?php echo $medicine['unit']; ?>">
-                            <?php echo htmlspecialchars($medicine['code'] . ' - ' . $medicine['name']); ?>
+                <label class="form-label">Món <span class="text-danger">*</span></label>
+                <select class="form-select item-select" name="product_id[]" required>
+                    <option value="">-- Chọn món --</option>
+                    <?php foreach ($products as $product): ?>
+                        <option value="<?php echo $product['id']; ?>"
+                                data-price="<?php echo $product['price']; ?>"
+                                data-unit="<?php echo $product['unit']; ?>">
+                            <?php echo htmlspecialchars($product['code'] . ' - ' . $product['name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
@@ -417,7 +417,7 @@ function calculateRow(row) {
 
 function calculateTotal() {
     let total = 0;
-    document.querySelectorAll('.medicine-row').forEach(row => {
+    document.querySelectorAll('.item-row').forEach(row => {
         const quantity = parseFloat(row.querySelector('.quantity-input').value) || 0;
         const price = parseFloat(row.querySelector('.price-input').value) || 0;
         total += quantity * price;
@@ -435,21 +435,21 @@ function formatCurrency(amount) {
 
 // Thêm dòng mới
 document.getElementById('addRowBtn').addEventListener('click', function() {
-    const template = document.getElementById('medicineRowTemplate');
+    const template = document.getElementById('itemRowTemplate');
     const clone = template.content.cloneNode(true);
-    const newRow = clone.querySelector('.medicine-row');
+    const newRow = clone.querySelector('.item-row');
 
     rowCount++;
     newRow.dataset.row = rowCount;
 
-    document.getElementById('medicineRows').appendChild(clone);
+    document.getElementById('itemRows').appendChild(clone);
     attachRowEvents(newRow);
 });
 
 // Gắn sự kiện cho dòng
 function attachRowEvents(row) {
-    // Khi chọn thuốc, tự động điền giá
-    row.querySelector('.medicine-select').addEventListener('change', function() {
+    // Khi chọn món, tự động điền giá
+    row.querySelector('.item-select').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const price = selectedOption.dataset.price || 0;
         const unit = selectedOption.dataset.unit || '';
@@ -472,11 +472,11 @@ function attachRowEvents(row) {
     const removeBtn = row.querySelector('.remove-row');
     if (removeBtn) {
         removeBtn.addEventListener('click', function() {
-            if (document.querySelectorAll('.medicine-row').length > 1) {
+            if (document.querySelectorAll('.item-row').length > 1) {
                 row.remove();
                 calculateTotal();
             } else {
-                alert('Phải có ít nhất một dòng thuốc!');
+                alert('Phải có ít nhất một dòng món!');
             }
         });
     }
@@ -484,7 +484,7 @@ function attachRowEvents(row) {
 
 // Gắn sự kiện cho dòng đầu tiên
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.medicine-row').forEach(row => {
+    document.querySelectorAll('.item-row').forEach(row => {
         attachRowEvents(row);
     });
 });

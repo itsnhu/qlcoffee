@@ -42,96 +42,83 @@ if ($message):
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-2">
-                    <i class="bi bi-truck text-primary"></i>
-                    Quản lý nhà cung cấp
-                </h2>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Quản lý thông tin các nhà cung cấp thuốc
-                </p>
+                <h4 class="fw-bold mb-1">Quản lý nhà cung cấp</h4>
+                <p class="text-muted small mb-0">Quản lý danh sách các đối tác cung cấp nguyên liệu và sản phẩm.</p>
             </div>
-            <div>
-                <a href="<?php echo BASE_URL; ?>/admin/suppliers/create.php" class="btn btn-primary">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Thêm nhà cung cấp mới
-                </a>
-            </div>
+            <a href="<?php echo BASE_URL; ?>/admin/suppliers/create.php" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-2"></i> Thêm nhà cung cấp
+            </a>
         </div>
     </div>
 </div>
 
 <!-- Suppliers Table -->
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <i class="bi bi-table me-2"></i>
-        <strong>Danh sách nhà cung cấp</strong>
-    </div>
-    <div class="card-body">
-        <?php if (empty($suppliers)): ?>
-            <div class="text-center py-5">
-                <i class="bi bi-inbox fs-1 text-muted"></i>
-                <p class="mt-3 text-muted">Chưa có nhà cung cấp nào trong hệ thống</p>
-                <a href="<?php echo BASE_URL; ?>/admin/suppliers/create.php" class="btn btn-primary">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Thêm nhà cung cấp đầu tiên
-                </a>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table id="suppliersTable" class="table table-striped table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Tên nhà cung cấp</th>
-                            <th>Số điện thoại</th>
-                            <th>Địa chỉ</th>
-                            <th>Ngày tạo</th>
-                            <th class="text-center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($suppliers as $supplier): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($supplier['id']); ?></td>
-                                <td>
-                                    <i class="bi bi-building me-2 text-primary"></i>
-                                    <strong><?php echo htmlspecialchars($supplier['name']); ?></strong>
-                                </td>
-                                <td>
-                                    <i class="bi bi-telephone me-2 text-success"></i>
-                                    <?php echo htmlspecialchars($supplier['phone']); ?>
-                                </td>
-                                <td>
-                                    <i class="bi bi-geo-alt me-2 text-danger"></i>
-                                    <?php echo htmlspecialchars($supplier['address']); ?>
-                                </td>
-                                <td>
-                                    <small><?php echo formatDate($supplier['created_at'], DATETIME_FORMAT); ?></small>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<?php echo BASE_URL; ?>/admin/suppliers/edit.php?id=<?php echo $supplier['id']; ?>"
-                                           class="btn btn-outline-warning"
-                                           title="Sửa">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="<?php echo BASE_URL; ?>/admin/suppliers/delete.php?id=<?php echo $supplier['id']; ?>"
-                                           class="btn btn-outline-danger"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp <?php echo htmlspecialchars($supplier['name']); ?>? Hành động này không thể hoàn tác!');"
-                                           title="Xóa">
-                                            <i class="bi bi-trash3"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+<div class="dash-card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table id="suppliersTable" class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr class="small text-uppercase text-muted">
+                    <th class="ps-4">Nhà cung cấp</th>
+                    <th>Liên hệ</th>
+                    <th>Địa chỉ</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($suppliers as $supplier): ?>
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-building"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($supplier['name']); ?></div>
+                                    <div class="text-muted small">ID: #<?php echo $supplier['id']; ?></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small"><i class="bi bi-telephone me-2 text-muted"></i><?php echo htmlspecialchars($supplier['phone']); ?></div>
+                            <div class="small"><i class="bi bi-envelope me-2 text-muted"></i><?php echo htmlspecialchars($supplier['email']); ?></div>
+                        </td>
+                        <td>
+                            <div class="text-muted small" style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                <i class="bi bi-geo-alt me-2"></i><?php echo htmlspecialchars($supplier['address']); ?>
+                            </div>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="<?php echo BASE_URL; ?>/admin/suppliers/edit.php?id=<?php echo $supplier['id']; ?>" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="<?php echo BASE_URL; ?>/admin/suppliers/delete.php?id=<?php echo $supplier['id']; ?>" 
+                                   class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa nhà cung cấp này?');">
+                                    <i class="bi bi-trash3"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
+<style>
+    .table thead th {
+        background-color: #f8fafc;
+        border-bottom: 2px solid #f1f5f9;
+        font-weight: 700;
+        color: #64748b;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    .table tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+</style>
 
 <!-- DataTables CSS & JS -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">

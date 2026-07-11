@@ -54,7 +54,7 @@ try {
         
 
         
-        $medicines = fetchAll($pdo, "
+        $products = fetchAll($pdo, "
             SELECT m.code, m.name, c.name as category_name, s.name as supplier_name,
                    m.quantity, m.unit, m.price,
                    (m.quantity * m.price) as inventory_value,
@@ -70,7 +70,7 @@ try {
                        WHEN m.quantity < 10 THEN 'Sắp hết'
                        ELSE 'Còn hàng'
                    END as stock_status
-            FROM medicines m
+            FROM products m
             LEFT JOIN categories c ON m.category_id = c.id
             LEFT JOIN suppliers s ON m.supplier_id = s.id
             ORDER BY m.quantity ASC, m.name ASC
@@ -78,15 +78,15 @@ try {
 
         
         $totalValue = 0;
-        foreach ($medicines as $medicine) {
-            $totalValue += $medicine['inventory_value'];
+        foreach ($products as $product) {
+            $totalValue += $product['inventory_value'];
         }
 
         
         $filename = 'Bao_Cao_Ton_Kho_' . date('Ymd_His') . '.csv';
         $headers = [
-            'Mã thuốc',
-            'Tên thuốc',
+            'Mã món',
+            'Tên món',
             'Loại',
             'Nhà cung cấp',
             'Số lượng',
@@ -101,9 +101,9 @@ try {
         $data = [];
 
         
-        $data[] = ['BÁO CÁO TỒN KHO'];
+        $data[] = ['THỐNG KÊ TỒN KHO'];
         $data[] = ['Ngày xuất: ' . date('d/m/Y H:i:s')];
-        $data[] = ['Tổng số thuốc: ' . count($medicines)];
+        $data[] = ['Tổng số món: ' . count($products)];
         $data[] = ['Tổng giá trị tồn kho: ' . number_format($totalValue, 0, ',', '.') . ' VND'];
         $data[] = []; 
 
@@ -111,19 +111,19 @@ try {
         $data[] = $headers;
 
         
-        foreach ($medicines as $medicine) {
+        foreach ($products as $product) {
             $data[] = [
-                $medicine['code'],
-                $medicine['name'],
-                $medicine['category_name'] ?? '-',
-                $medicine['supplier_name'] ?? '-',
-                $medicine['quantity'],
-                $medicine['unit'],
-                number_format($medicine['price'], 0, ',', '.'),
-                number_format($medicine['inventory_value'], 0, ',', '.'),
-                $medicine['expiry_date'] ? date('d/m/Y', strtotime($medicine['expiry_date'])) : '-',
-                $medicine['expiry_status'],
-                $medicine['stock_status']
+                $product['code'],
+                $product['name'],
+                $product['category_name'] ?? '-',
+                $product['supplier_name'] ?? '-',
+                $product['quantity'],
+                $product['unit'],
+                number_format($product['price'], 0, ',', '.'),
+                number_format($product['inventory_value'], 0, ',', '.'),
+                $product['expiry_date'] ? date('d/m/Y', strtotime($product['expiry_date'])) : '-',
+                $product['expiry_status'],
+                $product['stock_status']
             ];
         }
 
@@ -153,14 +153,14 @@ try {
         
         $totalRevenue = fetchOne($pdo, "
             SELECT COALESCE(SUM(total_amount), 0) as total
-            FROM invoices
+            FROM orders
             WHERE DATE(created_at) BETWEEN ? AND ?
         ", [$dateFrom, $dateTo])['total'] ?? 0;
 
         
         $totalInvoices = fetchOne($pdo, "
             SELECT COUNT(*) as total
-            FROM invoices
+            FROM orders
             WHERE DATE(created_at) BETWEEN ? AND ?
         ", [$dateFrom, $dateTo])['total'] ?? 0;
 
@@ -169,34 +169,34 @@ try {
             SELECT DATE(created_at) as sale_date,
                    COUNT(*) as invoice_count,
                    COALESCE(SUM(total_amount), 0) as revenue
-            FROM invoices
+            FROM orders
             WHERE DATE(created_at) BETWEEN ? AND ?
             GROUP BY DATE(created_at)
             ORDER BY sale_date ASC
         ", [$dateFrom, $dateTo]);
 
         
-        $topMedicines = fetchAll($pdo, "
-            SELECT m.code, m.name, m.unit,
-                   SUM(id.quantity) as total_sold,
-                   AVG(id.price) as avg_price,
-                   SUM(id.subtotal) as revenue
-            FROM invoice_details id
-            JOIN medicines m ON id.medicine_id = m.id
-            JOIN invoices i ON id.invoice_id = i.id
-            WHERE DATE(i.created_at) BETWEEN ? AND ?
-            GROUP BY m.id, m.code, m.name, m.unit
+        $topProducts = fetchAll($pdo, "
+            SELECT p.code, p.name, p.unit,
+                   SUM(od.quantity) as total_sold,
+                   AVG(od.price) as avg_price,
+                   SUM(od.subtotal) as revenue
+            FROM order_details od
+            JOIN products p ON od.product_id = p.id
+            JOIN orders o ON od.order_id = o.id
+            WHERE DATE(o.created_at) BETWEEN ? AND ?
+            GROUP BY p.id, p.code, p.name, p.unit
             ORDER BY total_sold DESC
         ", [$dateFrom, $dateTo]);
 
         
         $revenueByEmployee = fetchAll($pdo, "
             SELECT u.username, u.full_name,
-                   COUNT(i.id) as invoice_count,
-                   COALESCE(SUM(i.total_amount), 0) as revenue
-            FROM invoices i
-            JOIN users u ON i.user_id = u.id
-            WHERE DATE(i.created_at) BETWEEN ? AND ?
+                   COUNT(o.id) as invoice_count,
+                   COALESCE(SUM(o.total_amount), 0) as revenue
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            WHERE DATE(o.created_at) BETWEEN ? AND ?
             GROUP BY u.id, u.username, u.full_name
             ORDER BY revenue DESC
         ", [$dateFrom, $dateTo]);
@@ -207,7 +207,7 @@ try {
         $data = [];
 
         
-        $data[] = ['BÁO CÁO DOANH THU'];
+        $data[] = ['THỐNG KÊ DOANH THU'];
         $data[] = ['Từ ngày: ' . date('d/m/Y', strtotime($dateFrom)) . ' - Đến ngày: ' . date('d/m/Y', strtotime($dateTo))];
         $data[] = ['Ngày xuất: ' . date('d/m/Y H:i:s')];
         $data[] = [];
@@ -215,13 +215,13 @@ try {
         
         $data[] = ['TỔNG QUAN'];
         $data[] = ['Tổng doanh thu:', number_format($totalRevenue, 0, ',', '.') . ' VND'];
-        $data[] = ['Tổng số hóa đơn:', $totalInvoices];
-        $data[] = ['Giá trị TB/hóa đơn:', $totalInvoices > 0 ? number_format($totalRevenue / $totalInvoices, 0, ',', '.') . ' VND' : '0 VND'];
+        $data[] = ['Tổng số đơn hàng:', $totalInvoices];
+        $data[] = ['Giá trị TB/đơn:', $totalInvoices > 0 ? number_format($totalRevenue / $totalInvoices, 0, ',', '.') . ' VND' : '0 VND'];
         $data[] = [];
 
         
         $data[] = ['DOANH THU THEO NGÀY'];
-        $data[] = ['Ngày', 'Số hóa đơn', 'Doanh thu (VND)'];
+        $data[] = ['Ngày', 'Số đơn hàng', 'Doanh thu (VND)'];
         foreach ($dailyRevenue as $daily) {
             $data[] = [
                 date('d/m/Y', strtotime($daily['sale_date'])),
@@ -232,23 +232,23 @@ try {
         $data[] = [];
 
         
-        $data[] = ['TOP THUỐC BÁN CHẠY'];
-        $data[] = ['Mã thuốc', 'Tên thuốc', 'Đơn vị', 'Số lượng bán', 'Giá TB', 'Doanh thu (VND)'];
-        foreach ($topMedicines as $medicine) {
+        $data[] = ['TOP MÓN BÁN CHẠY'];
+        $data[] = ['Mã món', 'Tên món', 'Đơn vị', 'Số lượng bán', 'Giá TB', 'Doanh thu (VND)'];
+        foreach ($topProducts as $product) {
             $data[] = [
-                $medicine['code'],
-                $medicine['name'],
-                $medicine['unit'],
-                number_format($medicine['total_sold'], 0, ',', '.'),
-                number_format($medicine['avg_price'], 0, ',', '.'),
-                number_format($medicine['revenue'], 0, ',', '.')
+                $product['code'],
+                $product['name'],
+                $product['unit'],
+                number_format($product['total_sold'], 0, ',', '.'),
+                number_format($product['avg_price'], 0, ',', '.'),
+                number_format($product['revenue'], 0, ',', '.')
             ];
         }
         $data[] = [];
 
         
         $data[] = ['DOANH THU THEO NHÂN VIÊN'];
-        $data[] = ['Tên đăng nhập', 'Họ tên', 'Số hóa đơn', 'Doanh thu (VND)'];
+        $data[] = ['Tên đăng nhập', 'Họ tên', 'Số đơn hàng', 'Doanh thu (VND)'];
         foreach ($revenueByEmployee as $employee) {
             $data[] = [
                 $employee['username'],
@@ -262,13 +262,13 @@ try {
 
     } else {
         
-        setMessage('danger', 'Loại báo cáo không hợp lệ.');
+        setMessage('danger', 'Loại thống kê không hợp lệ.');
         redirect('/admin/reports/inventory.php');
     }
 
 } catch (PDOException $e) {
     error_log("Export Report Error: " . $e->getMessage());
-    setMessage('danger', 'Có lỗi xảy ra khi xuất báo cáo: ' . $e->getMessage());
+    setMessage('danger', 'Có lỗi xảy ra khi xuất thống kê: ' . $e->getMessage());
 
     if ($exportType === 'sales') {
         redirect('/admin/reports/sales.php');

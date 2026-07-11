@@ -1,6 +1,6 @@
 <?php
 $pageTitle = 'Chi tiết đơn hàng';
-require_once 'includes/header.php';
+require_once dirname(__DIR__) . '/includes/customer_header.php';
 
 // Redirect to login if not logged in
 if (!isset($_SESSION['customer_id'])) {
@@ -20,9 +20,9 @@ if (!$order) {
 }
 
 $orderDetails = fetchAll($pdo, "
-    SELECT od.*, m.name as medicine_name, m.code, m.unit
+    SELECT od.*, p.name as product_name, p.code, p.unit, p.image
     FROM order_details od
-    JOIN medicines m ON od.medicine_id = m.id
+    JOIN products p ON od.product_id = p.id
     WHERE od.order_id = ?
 ", [$orderId]);
 
@@ -83,11 +83,18 @@ $statusLabels = [
                                     <tr>
                                         <td>
                                             <div class="d-flex align-items-center">
-                                                <div class="bg-light rounded p-2 me-3">
-                                                    <i class="bi bi-capsule text-secondary fs-5"></i>
-                                                </div>
+                                                <?php if (isset($item['image']) && !empty($item['image'])): ?>
+                                                    <img src="<?= htmlspecialchars($item['image']) ?>"
+                                                         alt="<?= htmlspecialchars($item['product_name']) ?>"
+                                                         class="rounded me-3"
+                                                         style="width: 50px; height: 50px; object-fit: cover;">
+                                                <?php else: ?>
+                                                    <div class="bg-light rounded p-2 me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                        <i class="bi bi-cup-hot text-secondary fs-5"></i>
+                                                    </div>
+                                                <?php endif; ?>
                                                 <div>
-                                                    <div class="fw-medium"><?= htmlspecialchars($item['medicine_name']) ?></div>
+                                                    <div class="fw-medium"><?= htmlspecialchars($item['product_name']) ?></div>
                                                     <small class="text-muted"><?= htmlspecialchars($item['code']) ?></small>
                                                 </div>
                                             </div>
@@ -228,4 +235,4 @@ $statusLabels = [
     </div>
 </div>
 
-<?php require_once 'includes/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/includes/customer_footer.php'; ?>

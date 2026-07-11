@@ -53,24 +53,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
 
         
-        
-        $invoiceCount = fetchOne($pdo, "SELECT COUNT(*) as count FROM invoices WHERE user_id = ?", [$userId])['count'];
-
-        
+        // Check relations with orders and imports
+        $orderCount = fetchOne($pdo, "SELECT COUNT(*) as count FROM orders WHERE user_id = ?", [$userId])['count'];
         $importCount = fetchOne($pdo, "SELECT COUNT(*) as count FROM imports WHERE user_id = ?", [$userId])['count'];
 
-        
-        if ($invoiceCount > 0 || $importCount > 0) {
-            
+        // If has records, deactivate instead of delete
+        if ($orderCount > 0 || $importCount > 0) {
             $sql = "UPDATE users SET is_active = 0 WHERE id = ?";
             executeQuery($pdo, $sql, [$userId]);
 
             $pdo->commit();
 
             setMessage('warning', sprintf(
-                'Không thể xóa người dùng "%s" vì đã có %d hóa đơn và %d phiếu nhập liên quan. Tài khoản đã được vô hiệu hóa thay thế.',
+                'Không thể xóa người dùng "%s" vì đã có %d đơn hàng và %d phiếu nhập liên quan. Tài khoản đã được vô hiệu hóa thay thế.',
                 htmlspecialchars($user['username']),
-                $invoiceCount,
+                $orderCount,
                 $importCount
             ));
             redirect('/admin/users/index.php');

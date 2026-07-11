@@ -1,23 +1,24 @@
-# .htaccess for PharmaManager
+# .htaccess for Coffee Shop
 
 # Enable Rewrite Engine
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteBase /PharmaManager/
+    RewriteBase /LT/Coffee/
 
     # Redirect to HTTPS (uncomment if using SSL)
     # RewriteCond %{HTTPS} off
     # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-    # Remove .php extension
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_FILENAME}.php -f
-    RewriteRule ^(.*)$ $1.php [L]
+    # Remove .php extension (optional - can cause issues)
+    # RewriteCond %{REQUEST_FILENAME} !-d
+    # RewriteCond %{REQUEST_FILENAME}.php -f
+    # RewriteRule ^(.*)$ $1.php [L]
 
-    # Redirect to index.php if file/directory doesn't exist
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php [L,QSA]
+    # Redirect to index.php ONLY if file/directory doesn't exist
+    # This prevents breaking existing pages
+    # RewriteCond %{REQUEST_FILENAME} !-f
+    # RewriteCond %{REQUEST_FILENAME} !-d
+    # RewriteRule ^(.*)$ index.php [L,QSA]
 </IfModule>
 
 # Security Headers

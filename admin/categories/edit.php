@@ -18,12 +18,12 @@ try {
     $category = fetchOne($pdo, $sql, [$categoryId]);
 
     if (!$category) {
-        setMessage('danger', 'Không tìm thấy loại thuốc!');
+        setMessage('danger', 'Không tìm thấy danh mục!');
         redirect('/admin/categories/index.php');
     }
 } catch (PDOException $e) {
     error_log("Fetch Category Error: " . $e->getMessage());
-    setMessage('danger', 'Có lỗi khi tải thông tin loại thuốc.');
+    setMessage('danger', 'Có lỗi khi tải thông tin danh mục.');
     redirect('/admin/categories/index.php');
 }
 
@@ -38,9 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
     if (empty($formData['name'])) {
-        $errors['name'] = 'Vui lòng nhập tên loại thuốc';
+        $errors['name'] = 'Vui lòng nhập tên danh mục';
     } elseif (strlen($formData['name']) < 2) {
-        $errors['name'] = 'Tên loại thuốc phải có ít nhất 2 ký tự';
+        $errors['name'] = 'Tên danh mục phải có ít nhất 2 ký tự';
     }
 
     
@@ -49,11 +49,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "SELECT COUNT(*) as count FROM categories WHERE name = ? AND id != ?";
             $result = fetchOne($pdo, $sql, [$formData['name'], $categoryId]);
             if ($result['count'] > 0) {
-                $errors['name'] = 'Tên loại thuốc đã tồn tại';
+                $errors['name'] = 'Tên danh mục đã tồn tại';
             }
         } catch (PDOException $e) {
             error_log("Check Category Name Error: " . $e->getMessage());
-            $errors['name'] = 'Có lỗi khi kiểm tra tên loại thuốc';
+            $errors['name'] = 'Có lỗi khi kiểm tra tên danh mục';
         }
     }
 
@@ -67,16 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             executeQuery($pdo, $sql, $params);
 
             
-            setMessage('success', 'Cập nhật loại thuốc thành công!');
+            setMessage('success', 'Cập nhật danh mục thành công!');
             redirect('/admin/categories/index.php');
         } catch (PDOException $e) {
             error_log("Update Category Error: " . $e->getMessage());
-            $errors['general'] = 'Có lỗi khi cập nhật loại thuốc. Vui lòng thử lại.';
+            $errors['general'] = 'Có lỗi khi cập nhật danh mục. Vui lòng thử lại.';
         }
     }
 }
 
-$pageTitle = 'Chỉnh sửa loại thuốc';
+$pageTitle = 'Chỉnh sửa danh mục';
 require_once dirname(dirname(__DIR__)) . '/includes/header.php';
 ?>
 
@@ -89,18 +89,18 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                     <a href="<?php echo BASE_URL; ?>/admin/dashboard.php">Dashboard</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="<?php echo BASE_URL; ?>/admin/categories/index.php">Loại thuốc</a>
+                    <a href="<?php echo BASE_URL; ?>/admin/categories/index.php">Danh mục</a>
                 </li>
                 <li class="breadcrumb-item active">Chỉnh sửa</li>
             </ol>
         </nav>
         <h2 class="mb-2">
             <i class="bi bi-pencil-square text-warning"></i>
-            Chỉnh sửa loại thuốc
+            Chỉnh sửa danh mục
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
-            Cập nhật thông tin loại thuốc: <strong><?php echo htmlspecialchars($category['name']); ?></strong>
+            Cập nhật thông tin danh mục: <strong><?php echo htmlspecialchars($category['name']); ?></strong>
         </p>
     </div>
 </div>
@@ -120,14 +120,14 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
         <div class="card shadow-sm">
             <div class="card-header bg-warning text-dark">
                 <i class="bi bi-pencil-square me-2"></i>
-                <strong>Thông tin loại thuốc</strong>
+                <strong>Thông tin danh mục</strong>
             </div>
             <div class="card-body">
                 <form method="POST" action="" id="editCategoryForm">
                     <!-- Category Name -->
                     <div class="mb-4">
                         <label for="name" class="form-label">
-                            Tên loại thuốc <span class="text-danger">*</span>
+                            Tên danh mục <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text">
@@ -138,7 +138,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                                    id="name"
                                    name="name"
                                    value="<?php echo htmlspecialchars($formData['name']); ?>"
-                                   placeholder="Ví dụ: Thuốc kháng sinh, Thuốc giảm đau, Vitamin..."
+                                   placeholder="Ví dụ: Cà phê, Trà sữa, Sinh tố..."
                                    required
                                    autofocus>
                             <?php if (isset($errors['name'])): ?>
@@ -148,7 +148,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                             <?php endif; ?>
                         </div>
                         <small class="form-text text-muted">
-                            Tên loại thuốc phải có ít nhất 2 ký tự và chưa tồn tại trong hệ thống.
+                            Tên danh mục phải có ít nhất 2 ký tự và chưa tồn tại trong hệ thống.
                         </small>
                     </div>
 
@@ -160,7 +160,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                         </a>
                         <button type="submit" class="btn btn-warning">
                             <i class="bi bi-check-circle me-2"></i>
-                            Cập nhật loại thuốc
+                            Cập nhật danh mục
                         </button>
                     </div>
                 </form>

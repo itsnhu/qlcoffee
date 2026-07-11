@@ -21,9 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     
     if (empty($formData['name'])) {
-        $errors['name'] = 'Vui lòng nhập tên loại thuốc';
+        $errors['name'] = 'Vui lòng nhập tên danh mục';
     } elseif (strlen($formData['name']) < 2) {
-        $errors['name'] = 'Tên loại thuốc phải có ít nhất 2 ký tự';
+        $errors['name'] = 'Tên danh mục phải có ít nhất 2 ký tự';
     }
 
     
@@ -32,11 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "SELECT COUNT(*) as count FROM categories WHERE name = ?";
             $result = fetchOne($pdo, $sql, [$formData['name']]);
             if ($result['count'] > 0) {
-                $errors['name'] = 'Tên loại thuốc đã tồn tại';
+                $errors['name'] = 'Tên danh mục đã tồn tại';
             }
         } catch (PDOException $e) {
             error_log("Check Category Name Error: " . $e->getMessage());
-            $errors['name'] = 'Có lỗi khi kiểm tra tên loại thuốc';
+            $errors['name'] = 'Có lỗi khi kiểm tra tên danh mục';
         }
     }
 
@@ -50,16 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             executeQuery($pdo, $sql, $params);
 
             
-            setMessage('success', 'Thêm loại thuốc thành công!');
+            setMessage('success', 'Thêm danh mục thành công!');
             redirect('/admin/categories/index.php');
         } catch (PDOException $e) {
             error_log("Create Category Error: " . $e->getMessage());
-            $errors['general'] = 'Có lỗi khi thêm loại thuốc. Vui lòng thử lại.';
+            $errors['general'] = 'Có lỗi khi thêm danh mục. Vui lòng thử lại.';
         }
     }
 }
 
-$pageTitle = 'Thêm loại thuốc mới';
+$pageTitle = 'Thêm danh mục mới';
 require_once dirname(dirname(__DIR__)) . '/includes/header.php';
 ?>
 
@@ -72,18 +72,18 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                     <a href="<?php echo BASE_URL; ?>/admin/dashboard.php">Dashboard</a>
                 </li>
                 <li class="breadcrumb-item">
-                    <a href="<?php echo BASE_URL; ?>/admin/categories/index.php">Loại thuốc</a>
+                    <a href="<?php echo BASE_URL; ?>/admin/categories/index.php">Danh mục</a>
                 </li>
                 <li class="breadcrumb-item active">Thêm mới</li>
             </ol>
         </nav>
         <h2 class="mb-2">
             <i class="bi bi-plus-circle-fill text-primary"></i>
-            Thêm loại thuốc mới
+            Thêm danh mục mới
         </h2>
         <p class="text-muted mb-0">
             <i class="bi bi-info-circle me-1"></i>
-            Điền thông tin để tạo loại thuốc mới
+            Điền thông tin để tạo danh mục mới
         </p>
     </div>
 </div>
@@ -103,14 +103,14 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white">
                 <i class="bi bi-pencil-square me-2"></i>
-                <strong>Thông tin loại thuốc</strong>
+                <strong>Thông tin danh mục</strong>
             </div>
             <div class="card-body">
                 <form method="POST" action="" id="createCategoryForm">
                     <!-- Category Name -->
                     <div class="mb-4">
                         <label for="name" class="form-label">
-                            Tên loại thuốc <span class="text-danger">*</span>
+                            Tên danh mục <span class="text-danger">*</span>
                         </label>
                         <div class="input-group">
                             <span class="input-group-text">
@@ -121,7 +121,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                                    id="name"
                                    name="name"
                                    value="<?php echo htmlspecialchars($formData['name']); ?>"
-                                   placeholder="Ví dụ: Thuốc kháng sinh, Thuốc giảm đau, Vitamin..."
+                                   placeholder="Ví dụ: Cà phê, Trà sữa, Sinh tố..."
                                    required
                                    autofocus>
                             <?php if (isset($errors['name'])): ?>
@@ -131,7 +131,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                             <?php endif; ?>
                         </div>
                         <small class="form-text text-muted">
-                            Tên loại thuốc phải có ít nhất 2 ký tự và chưa tồn tại trong hệ thống.
+                            Tên danh mục phải có ít nhất 2 ký tự và chưa tồn tại trong hệ thống.
                         </small>
                     </div>
 
@@ -143,7 +143,7 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                         </a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-2"></i>
-                            Thêm loại thuốc
+                            Thêm danh mục
                         </button>
                     </div>
                 </form>

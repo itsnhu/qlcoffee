@@ -1,20 +1,39 @@
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="footer-pharma">
-        <div class="container-fluid px-4">
-            <div class="d-flex flex-wrap justify-content-between align-items-center">
-                <p class="mb-0">
-                    <i class="bi bi-capsule-pill text-primary me-1"></i>
-                    <strong>PharmaManager</strong> &copy; <?php echo date('Y'); ?> - Hệ thống quản lý nhà thuốc
-                </p>
-                <p class="mb-0 text-muted">
-                    <i class="bi bi-code-slash me-1"></i> Phiên bản 1.0
-                </p>
+    <?php if ($isLoggedIn): ?>
+                <!-- Footer -->
+                <footer class="footer-pharma border-top py-3 mt-auto bg-white">
+                    <div class="container-fluid px-4">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center">
+                            <p class="mb-0 small text-muted">
+                                <i class="bi bi-cup-hot-fill text-primary me-1"></i>
+                                <strong>TNT Coffee</strong> &copy; <?php echo date('Y'); ?> - Hệ thống quản lý quán cà phê hiện đại
+                            </p>
+                            <p class="mb-0 text-muted small">
+                                <i class="bi bi-code-slash me-1"></i> Phiên bản 1.0
+                            </p>
+                        </div>
+                    </div>
+                </footer>
+                </div> <!-- end content-body -->
+            </div> <!-- end main-content-wrapper -->
+        </div> <!-- end dashboard-container -->
+    <?php else: ?>
+        <!-- Footer for public/auth pages -->
+        <footer class="footer-pharma">
+            <div class="container-fluid px-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-center">
+                    <p class="mb-0">
+                        <i class="bi bi-cup-hot-fill text-primary me-1"></i>
+                        <strong>TNT Coffee</strong> &copy; <?php echo date('Y'); ?> - Hệ thống quản lý quán cà phê hiện đại
+                    </p>
+                    <p class="mb-0 text-muted">
+                        <i class="bi bi-code-slash me-1"></i> Phiên bản 1.0
+                    </p>
+                </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+            </div> <!-- end container -->
+        </main>
+    <?php endif; ?>
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -96,6 +115,24 @@
                     form.classList.add('was-validated')
                 }, false)
             })
+
+            // Custom validation messages in Vietnamese
+            const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
+            inputs.forEach(input => {
+                input.oninvalid = function(e) {
+                    e.target.setCustomValidity("");
+                    if (!e.target.validity.valid) {
+                        if (e.target.type === 'email') {
+                            e.target.setCustomValidity("Vui lòng nhập đúng định dạng email.");
+                        } else {
+                            e.target.setCustomValidity("Vui lòng điền vào trường này.");
+                        }
+                    }
+                };
+                input.oninput = function(e) {
+                    e.target.setCustomValidity("");
+                };
+            });
         })()
     </script>
 

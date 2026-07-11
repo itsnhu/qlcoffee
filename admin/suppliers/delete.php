@@ -27,11 +27,11 @@ try {
     }
 
     
-    $sql = "SELECT COUNT(*) as count FROM medicines WHERE supplier_id = ?";
+    $sql = "SELECT COUNT(*) as count FROM products WHERE supplier_id = ?";
     $result = fetchOne($pdo, $sql, [$supplierId]);
 
     if ($result['count'] > 0) {
-        setMessage('danger', 'Không thể xóa nhà cung cấp này vì có ' . $result['count'] . ' thuốc đang sử dụng!');
+        setMessage('danger', 'Không thể xóa nhà cung cấp này vì có ' . $result['count'] . ' món đang sử dụng!');
         redirect('/admin/suppliers/index.php');
     }
 

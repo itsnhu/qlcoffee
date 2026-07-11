@@ -13,7 +13,22 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-define('BASE_URL', 'http://localhost/PharmaManager');
+
+// Tự động phát hiện host và port
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+
+// Lấy base path một cách chắc chắn hơn
+$docRoot = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+$currentDir = str_replace('\\', '/', __DIR__);
+$projectRoot = str_replace('\\', '/', dirname($currentDir));
+$baseDir = str_ireplace($docRoot, '', $projectRoot);
+
+// Đảm bảo baseDir bắt đầu bằng / và không kết thúc bằng /
+if ($baseDir !== '' && $baseDir[0] !== '/') $baseDir = '/' . $baseDir;
+$baseDir = rtrim($baseDir, '/');
+
+define('BASE_URL', $protocol . '://' . $host . $baseDir);
 
 define('BASE_PATH', dirname(__DIR__));
 
@@ -90,8 +105,6 @@ function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
         setMessage('danger', 'Bạn không có quyền truy cập trang này.');
-        redirect('/employee/dashboard.php');
+        redirect('/employee/orders/index.php');
     }
 }
-
-?>

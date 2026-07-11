@@ -8,6 +8,6 @@ unset($_SESSION['customer_name']);
 unset($_SESSION['customer_login_time']);
 
 setMessage('success', 'Đã đăng xuất thành công');
-header('Location: ' . BASE_URL . '/user/');
+header('Location: ' . BASE_URL);
 exit;
 ?>

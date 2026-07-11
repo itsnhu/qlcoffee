@@ -41,8 +41,8 @@ if (!function_exists('hasPermission')) {
         if (!isLoggedIn()) return false;
         if ($_SESSION['role'] === 'admin') return true;
         $perms = [
-            'medicine' => ['view'],
-            'invoice' => ['view', 'create'],
+            'product' => ['view'],
+            'order' => ['view', 'create'],
         ];
         return isset($perms[$resource]) && in_array($action, $perms[$resource]);
     }

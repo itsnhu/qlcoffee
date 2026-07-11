@@ -18,10 +18,10 @@ try {
 } catch (PDOException $e) {
     error_log("Category List Error: " . $e->getMessage());
     $categories = [];
-    setMessage('danger', 'Có lỗi khi tải danh sách loại thuốc.');
+    setMessage('danger', 'Có lỗi khi tải danh sách danh mục.');
 }
 
-$pageTitle = 'Quản lý loại thuốc';
+$pageTitle = 'Quản lý danh mục';
 require_once dirname(dirname(__DIR__)) . '/includes/header.php';
 ?>
 
@@ -42,84 +42,60 @@ if ($message):
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="mb-2">
-                    <i class="bi bi-tags-fill text-primary"></i>
-                    Quản lý loại thuốc
-                </h2>
-                <p class="text-muted mb-0">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Quản lý các loại thuốc trong hệ thống
-                </p>
+                <h4 class="fw-bold mb-1">Quản lý danh mục</h4>
+                <p class="text-muted small mb-0">Phân loại các món ăn, đồ uống để dễ dàng quản lý thực đơn.</p>
             </div>
-            <div>
-                <a href="<?php echo BASE_URL; ?>/admin/categories/create.php" class="btn btn-primary">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Thêm loại thuốc mới
-                </a>
-            </div>
+            <a href="<?php echo BASE_URL; ?>/admin/categories/create.php" class="btn btn-primary rounded-pill px-4">
+                <i class="bi bi-plus-lg me-2"></i> Thêm danh mục
+            </a>
         </div>
     </div>
 </div>
 
 <!-- Categories Table -->
-<div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-        <i class="bi bi-table me-2"></i>
-        <strong>Danh sách loại thuốc</strong>
-    </div>
-    <div class="card-body">
-        <?php if (empty($categories)): ?>
-            <div class="text-center py-5">
-                <i class="bi bi-inbox fs-1 text-muted"></i>
-                <p class="mt-3 text-muted">Chưa có loại thuốc nào trong hệ thống</p>
-                <a href="<?php echo BASE_URL; ?>/admin/categories/create.php" class="btn btn-primary">
-                    <i class="bi bi-plus-circle-fill me-2"></i>
-                    Thêm loại thuốc đầu tiên
-                </a>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table id="categoriesTable" class="table table-striped table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>ID</th>
-                            <th>Tên loại thuốc</th>
-                            <th>Ngày tạo</th>
-                            <th class="text-center">Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($categories as $category): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($category['id']); ?></td>
-                                <td>
-                                    <i class="bi bi-tag-fill me-2 text-primary"></i>
-                                    <strong><?php echo htmlspecialchars($category['name']); ?></strong>
-                                </td>
-                                <td>
-                                    <small><?php echo formatDate($category['created_at'], DATETIME_FORMAT); ?></small>
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<?php echo BASE_URL; ?>/admin/categories/edit.php?id=<?php echo $category['id']; ?>"
-                                           class="btn btn-outline-warning"
-                                           title="Sửa">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <a href="<?php echo BASE_URL; ?>/admin/categories/delete.php?id=<?php echo $category['id']; ?>"
-                                           class="btn btn-outline-danger"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa loại thuốc <?php echo htmlspecialchars($category['name']); ?>? Hành động này không thể hoàn tác!');"
-                                           title="Xóa">
-                                            <i class="bi bi-trash3"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
+<div class="dash-card p-0 overflow-hidden">
+    <div class="table-responsive">
+        <table id="categoriesTable" class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr class="small text-uppercase text-muted">
+                    <th class="ps-4">ID</th>
+                    <th>Tên danh mục</th>
+                    <th>Ngày tạo</th>
+                    <th class="text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($categories as $category): ?>
+                    <tr>
+                        <td class="ps-4 text-muted small">#<?php echo $category['id']; ?></td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-tag-fill"></i>
+                                </div>
+                                <span class="fw-bold"><?php echo htmlspecialchars($category['name']); ?></span>
+                            </div>
+                        </td>
+                        <td class="text-muted small">
+                            <?php echo date('d/m/Y', strtotime($category['created_at'])); ?>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="<?php echo BASE_URL; ?>/admin/categories/edit.php?id=<?php echo $category['id']; ?>" 
+                                   class="btn btn-sm btn-outline-primary rounded-pill px-3">
+                                    <i class="bi bi-pencil-square me-1"></i> Sửa
+                                </a>
+                                <a href="<?php echo BASE_URL; ?>/admin/categories/delete.php?id=<?php echo $category['id']; ?>" 
+                                   class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                   onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục này?');">
+                                    <i class="bi bi-trash3 me-1"></i> Xóa
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 

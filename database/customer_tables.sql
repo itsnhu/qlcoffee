@@ -1,9 +1,9 @@
 -- =============================================
--- PHARMAMANAGER - CUSTOMER MODULE
+-- PHARMAMANAGERNEW - CUSTOMER MODULE
 -- Thêm bảng cho hệ thống bán hàng online
 -- =============================================
 
-USE pharmamanager;
+USE pharmamanagernew;
 
 -- =============================================
 -- 1. BẢNG CUSTOMERS (Khách hàng)
@@ -51,12 +51,12 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE TABLE IF NOT EXISTS order_details (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
-    medicine_id INT NOT NULL,
+    product_id INT NOT NULL,
     quantity INT NOT NULL,
     price DECIMAL(12, 2) NOT NULL,
     subtotal DECIMAL(12, 2) NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE RESTRICT,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE RESTRICT,
     INDEX idx_order (order_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -66,13 +66,13 @@ CREATE TABLE IF NOT EXISTS order_details (
 CREATE TABLE IF NOT EXISTS cart (
     id INT AUTO_INCREMENT PRIMARY KEY,
     customer_id INT NOT NULL,
-    medicine_id INT NOT NULL,
+    product_id INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE,
-    FOREIGN KEY (medicine_id) REFERENCES medicines(id) ON DELETE CASCADE,
-    UNIQUE KEY unique_cart_item (customer_id, medicine_id),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_cart_item (customer_id, product_id),
     INDEX idx_customer (customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

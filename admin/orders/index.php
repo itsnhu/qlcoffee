@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     if ($orderId && in_array($newStatus, ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'])) {
         try {
-            executeQuery($pdo, "UPDATE orders SET status = ? WHERE id = ?", [$newStatus, $orderId]);
+            executeQuery($pdo, "UPDATE orders SET status = ?, user_id = ? WHERE id = ?", [$newStatus, $_SESSION['user_id'], $orderId]);
             setMessage('success', 'Cập nhật trạng thái đơn hàng thành công!');
         } catch (Exception $e) {
             setMessage('danger', 'Có lỗi xảy ra: ' . $e->getMessage());

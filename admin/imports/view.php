@@ -38,9 +38,9 @@ try {
 
     
     $sql = "SELECT id.id, id.quantity, id.price, id.subtotal,
-                   m.name as medicine_name, m.code as medicine_code, m.unit
+                   m.name as product_name, m.code as product_code, m.unit
             FROM import_details id
-            LEFT JOIN medicines m ON id.medicine_id = m.id
+            LEFT JOIN products m ON id.product_id = m.id
             WHERE id.import_id = ?
             ORDER BY id.id ASC";
 
@@ -200,18 +200,18 @@ if ($message):
     </div>
 </div>
 
-<!-- Danh sách thuốc -->
+<!-- Danh sách món -->
 <div class="card shadow-sm">
     <div class="card-header bg-info text-white">
-        <i class="bi bi-capsule-pill me-2"></i>
-        <strong>Danh sách thuốc nhập</strong>
-        <span class="badge bg-light text-dark ms-2"><?php echo count($import_details); ?> loại thuốc</span>
+        <i class="bi bi-cup-hot-fill me-2"></i>
+        <strong>Danh sách món nhập</strong>
+        <span class="badge bg-light text-dark ms-2"><?php echo count($import_details); ?> món</span>
     </div>
     <div class="card-body">
         <?php if (empty($import_details)): ?>
             <div class="text-center py-5">
                 <i class="bi bi-inbox fs-1 text-muted"></i>
-                <p class="mt-3 text-muted">Không có thuốc nào trong phiếu nhập này</p>
+                <p class="mt-3 text-muted">Không có món nào trong phiếu nhập này</p>
             </div>
         <?php else: ?>
             <div class="table-responsive">
@@ -219,8 +219,8 @@ if ($message):
                     <thead class="table-info">
                         <tr>
                             <th width="5%" class="text-center">STT</th>
-                            <th width="12%">Mã thuốc</th>
-                            <th width="30%">Tên thuốc</th>
+                            <th width="12%">Mã món</th>
+                            <th width="30%">Tên món</th>
                             <th width="10%" class="text-center">Số lượng</th>
                             <th width="10%">Đơn vị</th>
                             <th width="15%" class="text-end">Giá nhập</th>
@@ -236,10 +236,10 @@ if ($message):
                             <td class="text-center"><?php echo $stt++; ?></td>
                             <td>
                                 <strong class="text-primary">
-                                    <?php echo htmlspecialchars($detail['medicine_code']); ?>
+                                    <?php echo htmlspecialchars($detail['product_code']); ?>
                                 </strong>
                             </td>
-                            <td><?php echo htmlspecialchars($detail['medicine_name']); ?></td>
+                            <td><?php echo htmlspecialchars($detail['product_name']); ?></td>
                             <td class="text-center">
                                 <span class="badge bg-info">
                                     <?php echo number_format($detail['quantity']); ?>

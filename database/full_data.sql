@@ -1,11 +1,11 @@
 -- =============================================
--- PHARMAMANAGER - DATABASE COMPLETE
+-- PHARMAMANAGERNEW - DATABASE COMPLETE
 -- Xóa database cũ và tạo mới với đầy đủ dữ liệu
 -- =============================================
 
-DROP DATABASE IF EXISTS pharmamanager;
-CREATE DATABASE pharmamanager CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE pharmamanager;
+DROP DATABASE IF EXISTS pharmamanagernew;
+CREATE DATABASE pharmamanagernew CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE pharmamanagernew;
 
 -- =============================================
 -- 1. BẢNG USERS (Người dùng)

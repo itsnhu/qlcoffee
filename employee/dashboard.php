@@ -5,25 +5,27 @@ require_once dirname(__DIR__) . '/config/database.php';
 require_once dirname(__DIR__) . '/includes/auth.php';
 
 requireEmployee();
+redirect('/employee/tables/index.php');
+exit;
 
 try {
-    $totalMedicines = fetchOne($pdo, "SELECT COUNT(*) as total FROM medicines")['total'] ?? 0;
+    $totalProducts = fetchOne($pdo, "SELECT COUNT(*) as total FROM products")['total'] ?? 0;
 
     $myTodayInvoices = fetchOne($pdo, "
         SELECT COUNT(*) as total
-        FROM invoices
+        FROM orders
         WHERE user_id = ? AND DATE(created_at) = CURDATE()
     ", [$_SESSION['user_id']])['total'] ?? 0;
 
     $myTodayRevenue = fetchOne($pdo, "
         SELECT SUM(total_amount) as total
-        FROM invoices
+        FROM orders
         WHERE user_id = ? AND DATE(created_at) = CURDATE()
     ", [$_SESSION['user_id']])['total'] ?? 0;
 
     $myMonthInvoices = fetchOne($pdo, "
         SELECT COUNT(*) as total
-        FROM invoices
+        FROM orders
         WHERE user_id = ?
         AND MONTH(created_at) = MONTH(CURDATE())
         AND YEAR(created_at) = YEAR(CURDATE())
@@ -31,27 +33,27 @@ try {
 
     $myMonthRevenue = fetchOne($pdo, "
         SELECT SUM(total_amount) as total
-        FROM invoices
+        FROM orders
         WHERE user_id = ?
         AND MONTH(created_at) = MONTH(CURDATE())
         AND YEAR(created_at) = YEAR(CURDATE())
     ", [$_SESSION['user_id']])['total'] ?? 0;
 
-    $lowStockCount = fetchOne($pdo, "SELECT COUNT(*) as total FROM medicines WHERE quantity < 10")['total'] ?? 0;
+    $lowStockCount = fetchOne($pdo, "SELECT COUNT(*) as total FROM products WHERE quantity < 10")['total'] ?? 0;
 
     $myRecentInvoices = fetchAll($pdo, "
         SELECT *
-        FROM invoices
+        FROM orders
         WHERE user_id = ?
         ORDER BY created_at DESC
         LIMIT 5
     ", [$_SESSION['user_id']]);
 
-    $myTopMedicines = fetchAll($pdo, "
+    $myTopProducts = fetchAll($pdo, "
         SELECT m.name, SUM(id.quantity) as total_sold
-        FROM invoice_details id
-        JOIN medicines m ON id.medicine_id = m.id
-        JOIN invoices i ON id.invoice_id = i.id
+        FROM order_details id
+        JOIN products m ON id.product_id = m.id
+        JOIN orders i ON id.order_id = i.id
         WHERE i.user_id = ?
         AND MONTH(i.created_at) = MONTH(CURDATE())
         AND YEAR(i.created_at) = YEAR(CURDATE())
@@ -62,8 +64,8 @@ try {
 
 } catch (PDOException $e) {
     error_log("Dashboard Error: " . $e->getMessage());
-    $totalMedicines = $myTodayInvoices = $myTodayRevenue = $myMonthInvoices = $myMonthRevenue = $lowStockCount = 0;
-    $myRecentInvoices = $myTopMedicines = [];
+    $totalProducts = $myTodayInvoices = $myTodayRevenue = $myMonthInvoices = $myMonthRevenue = $lowStockCount = 0;
+    $myRecentInvoices = $myTopProducts = [];
 }
 
 $pageTitle = 'Dashboard Nhân viên';
@@ -82,261 +84,177 @@ if ($message):
     </div>
 <?php endif; ?>
 
-<!-- Welcome Section -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card border-0 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-            <div class="card-body text-white p-4">
-                <h2 class="mb-2">
-                    <i class="bi bi-person-circle"></i>
-                    Chào mừng, <?php echo htmlspecialchars($_SESSION['full_name']); ?>!
-                </h2>
-                <p class="mb-0 opacity-75">
-                    <i class="bi bi-calendar3 me-2"></i>
-                    <?php echo date('l, d/m/Y - H:i'); ?>
-                </p>
+<!-- Welcome & Stats Section -->
+<div class="row g-4 mb-4">
+    <!-- Orders Today -->
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="dash-card-icon bg-light-primary">
+                    <i class="bi bi-cart text-primary"></i>
+                </div>
+                <div class="dash-card-trend text-success">
+                    <i class="bi bi-clock"></i> Hôm nay
+                </div>
             </div>
+            <div class="dash-card-title">Đơn hàng hôm nay</div>
+            <div class="dash-card-value"><?= number_format($myTodayInvoices) ?></div>
+            <div class="small text-muted">Tổng đơn của bạn</div>
+        </div>
+    </div>
+
+    <!-- Revenue Today -->
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="dash-card-icon bg-light-success">
+                    <i class="bi bi-cash-stack text-success"></i>
+                </div>
+                <div class="dash-card-trend text-success">
+                    <i class="bi bi-graph-up"></i> Doanh số
+                </div>
+            </div>
+            <div class="dash-card-title">Doanh thu hôm nay</div>
+            <div class="dash-card-value"><?= formatCurrency($myTodayRevenue) ?></div>
+            <div class="small text-muted">Thực nhận giao dịch</div>
+        </div>
+    </div>
+
+    <!-- Month Orders -->
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="dash-card-icon bg-light-info">
+                    <i class="bi bi-calendar-event text-info"></i>
+                </div>
+                <div class="dash-card-trend text-info">
+                    <i class="bi bi-person"></i> Tháng này
+                </div>
+            </div>
+            <div class="dash-card-title">Đơn hàng trong tháng</div>
+            <div class="dash-card-value"><?= number_format($myMonthInvoices) ?></div>
+            <div class="small text-muted">Hiệu suất cá nhân</div>
+        </div>
+    </div>
+
+    <!-- Low Stock -->
+    <div class="col-md-3">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="dash-card-icon bg-light-warning">
+                    <i class="bi bi-exclamation-triangle text-warning"></i>
+                </div>
+                <div class="dash-card-trend text-danger">
+                    <i class="bi bi-warning"></i> Cảnh báo
+                </div>
+            </div>
+            <div class="dash-card-title">Món sắp hết</div>
+            <div class="dash-card-value"><?= number_format($lowStockCount) ?></div>
+            <div class="small text-muted">Số lượng dưới 10</div>
         </div>
     </div>
 </div>
 
-<!-- Statistics Cards -->
-<div class="row mb-4">
-    <!-- Hóa đơn hôm nay -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 border-start border-primary border-4 shadow-sm h-100">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <div class="text-uppercase text-primary fw-bold small mb-1">HĐ hôm nay</div>
-                        <div class="h3 mb-0 fw-bold"><?php echo number_format($myTodayInvoices); ?></div>
-                        <small class="text-muted">hóa đơn</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-receipt fs-1 text-primary opacity-25"></i>
-                    </div>
+<div class="row g-4">
+    <!-- Recent My Orders -->
+    <div class="col-xl-7">
+        <div class="dash-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0">Đơn hàng gần nhất của bạn</h5>
+                <a href="<?= BASE_URL ?>/admin/sales/index.php" class="small text-primary text-decoration-none">Xem thêm</a>
+            </div>
+            
+            <?php if (empty($myRecentInvoices)): ?>
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted"></i>
+                    <p class="mt-2 text-muted">Bạn chưa có đơn hàng nào hôm nay</p>
+                    <a href="<?= BASE_URL ?>/admin/sales/create.php" class="btn btn-primary rounded-pill mt-2">Bán hàng ngay</a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Doanh thu hôm nay -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 border-start border-success border-4 shadow-sm h-100">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <div class="text-uppercase text-success fw-bold small mb-1">DT hôm nay</div>
-                        <div class="h3 mb-0 fw-bold"><?php echo formatCurrency($myTodayRevenue); ?></div>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-cash-stack fs-1 text-success opacity-25"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Hóa đơn tháng này -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 border-start border-info border-4 shadow-sm h-100">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <div class="text-uppercase text-info fw-bold small mb-1">HĐ tháng này</div>
-                        <div class="h3 mb-0 fw-bold"><?php echo number_format($myMonthInvoices); ?></div>
-                        <small class="text-success fw-bold"><?php echo formatCurrency($myMonthRevenue); ?></small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-graph-up fs-1 text-info opacity-25"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Thuốc sắp hết -->
-    <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 border-start border-warning border-4 shadow-sm h-100">
-            <div class="card-body">
-                <div class="row align-items-center">
-                    <div class="col">
-                        <div class="text-uppercase text-warning fw-bold small mb-1">Thuốc sắp hết</div>
-                        <div class="h3 mb-0 fw-bold"><?php echo number_format($lowStockCount); ?></div>
-                        <small class="text-muted">Số lượng < 10</small>
-                    </div>
-                    <div class="col-auto">
-                        <i class="bi bi-exclamation-triangle fs-1 text-warning opacity-25"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Actions -->
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-lightning-fill me-2"></i>
-                <strong>Thao tác nhanh</strong>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <a href="<?php echo BASE_URL; ?>/admin/sales/index.php" class="btn btn-outline-primary w-100 py-3">
-                            <i class="bi bi-plus-circle fs-4 d-block mb-2"></i>
-                            <strong>Tạo hóa đơn mới</strong>
-                        </a>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="<?php echo BASE_URL; ?>/employee/medicines/index.php" class="btn btn-outline-info w-100 py-3">
-                            <i class="bi bi-search fs-4 d-block mb-2"></i>
-                            <strong>Tra cứu thuốc</strong>
-                        </a>
-                    </div>
-                    <div class="col-md-4">
-                        <a href="<?php echo BASE_URL; ?>/admin/sales/index.php" class="btn btn-outline-success w-100 py-3">
-                            <i class="bi bi-clock-history fs-4 d-block mb-2"></i>
-                            <strong>Lịch sử bán hàng</strong>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Hóa đơn gần nhất của tôi -->
-    <div class="col-xl-7 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-primary text-white">
-                <i class="bi bi-receipt me-2"></i>
-                <strong>Hóa đơn gần nhất của tôi</strong>
-            </div>
-            <div class="card-body p-0">
-                <?php if (empty($myRecentInvoices)): ?>
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-inbox fs-1"></i>
-                        <p class="mt-2">Bạn chưa tạo hóa đơn nào</p>
-                        <a href="<?php echo BASE_URL; ?>/admin/sales/index.php" class="btn btn-primary mt-2">
-                            <i class="bi bi-plus-circle me-2"></i>
-                            Tạo hóa đơn ngay
-                        </a>
-                    </div>
-                <?php else: ?>
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+            <?php else: ?>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Tổng</th>
+                                <th>Thời gian</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($myRecentInvoices as $order): ?>
                                 <tr>
-                                    <th>Mã HĐ</th>
-                                    <th>Khách hàng</th>
-                                    <th>Tổng tiền</th>
-                                    <th>Thời gian</th>
-                                    <th></th>
+                                    <td><span class="fw-bold text-dark">#<?= htmlspecialchars($order['order_code']) ?></span></td>
+                                    <td><?= htmlspecialchars($order['customer_name'] ?? 'Khách lẻ') ?></td>
+                                    <td><span class="text-success fw-bold"><?= formatCurrency($order['total_amount']) ?></span></td>
+                                    <td><small class="text-muted"><?= date('H:i d/m', strtotime($order['created_at'])) ?></small></td>
+                                    <td>
+                                        <a href="<?= BASE_URL ?>/admin/sales/view.php?id=<?= $order['id'] ?>" class="btn btn-sm btn-icon btn-light-primary rounded-circle">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($myRecentInvoices as $invoice): ?>
-                                    <tr>
-                                        <td>
-                                            <strong><?php echo htmlspecialchars($invoice['invoice_code']); ?></strong>
-                                        </td>
-                                        <td><?php echo htmlspecialchars($invoice['customer_name'] ?? 'Khách lẻ'); ?></td>
-                                        <td class="text-success fw-bold">
-                                            <?php echo formatCurrency($invoice['total_amount']); ?>
-                                        </td>
-                                        <td>
-                                            <small><?php echo formatDate($invoice['created_at'], DATETIME_FORMAT); ?></small>
-                                        </td>
-                                        <td>
-                                            <a href="<?php echo BASE_URL; ?>/admin/sales/view.php?id=<?php echo $invoice['id']; ?>" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                <?php endif; ?>
-            </div>
-            <?php if (!empty($myRecentInvoices)): ?>
-                <div class="card-footer bg-light text-center">
-                    <a href="<?php echo BASE_URL; ?>/admin/sales/index.php" class="text-decoration-none">
-                        Xem tất cả <i class="bi bi-arrow-right"></i>
-                    </a>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
-    <!-- Top thuốc bán chạy của tôi -->
-    <div class="col-xl-5 mb-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-success text-white">
-                <i class="bi bi-trophy me-2"></i>
-                <strong>Top thuốc tôi bán tháng này</strong>
-            </div>
-            <div class="card-body">
-                <?php if (empty($myTopMedicines)): ?>
-                    <div class="text-center text-muted py-4">
-                        <i class="bi bi-inbox fs-1"></i>
-                        <p class="mt-2">Chưa có dữ liệu bán hàng</p>
-                    </div>
-                <?php else: ?>
-                    <div class="list-group list-group-flush">
-                        <?php $rank = 1; foreach ($myTopMedicines as $medicine): ?>
-                            <div class="list-group-item px-0">
-                                <div class="d-flex align-items-center">
-                                    <div class="flex-shrink-0">
-                                        <span class="badge bg-success rounded-circle" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">
-                                            <?php echo $rank++; ?>
-                                        </span>
-                                    </div>
-                                    <div class="flex-grow-1 ms-3">
-                                        <div class="fw-bold"><?php echo htmlspecialchars($medicine['name']); ?></div>
-                                        <small class="text-muted">
-                                            Đã bán: <?php echo number_format($medicine['total_sold']); ?> sản phẩm
-                                        </small>
-                                    </div>
+    <!-- Top Products by Me -->
+    <div class="col-xl-5">
+        <div class="dash-card">
+            <h5 class="fw-bold mb-4">Top món bạn bán chạy</h5>
+            <?php if (empty($myTopProducts)): ?>
+                <p class="text-center text-muted py-5">Chưa có dữ liệu bán hàng tháng này.</p>
+            <?php else: ?>
+                <div class="list-group list-group-flush">
+                    <?php $rank = 1; foreach ($myTopProducts as $product): ?>
+                        <div class="list-group-item px-0 border-0 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rank-circle bg-primary text-white me-3">
+                                    <?= $rank++ ?>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold text-dark"><?= htmlspecialchars($product['name']) ?></div>
+                                    <small class="text-muted">Đã bán <?= number_format($product['total_sold']) ?> món</small>
+                                </div>
+                                <div class="bg-light p-2 rounded text-center" style="min-width: 60px;">
+                                    <div class="small fw-bold text-primary">TOP</div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>
 
-<!-- Tips Section -->
-<div class="row">
-    <div class="col-12">
-        <div class="card border-info shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-start">
-                    <div class="flex-shrink-0">
-                        <i class="bi bi-lightbulb text-info fs-1"></i>
-                    </div>
-                    <div class="flex-grow-1 ms-3">
-                        <h5 class="text-info mb-2">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Mẹo sử dụng
-                        </h5>
-                        <ul class="mb-0">
-                            <li>Sử dụng chức năng <strong>Tra cứu thuốc</strong> để tìm kiếm nhanh thông tin thuốc khi khách hàng hỏi</li>
-                            <li>Kiểm tra số lượng tồn kho trước khi tạo hóa đơn để tránh thiếu hàng</li>
-                            <li>Nhập đầy đủ thông tin khách hàng để dễ dàng tra cứu lịch sử mua hàng sau này</li>
-                            <li>Thường xuyên xem phần <strong>Thuốc sắp hết</strong> để thông báo cho quản lý kịp thời</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    .bg-light-primary { background-color: rgba(111, 78, 55, 0.1) !important; }
+    .bg-light-info { background-color: rgba(59, 130, 246, 0.1) !important; }
+    .bg-light-success { background-color: rgba(34, 197, 94, 0.1) !important; }
+    .bg-light-warning { background-color: rgba(234, 179, 8, 0.1) !important; }
+    
+    .rank-circle {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.85rem;
+    }
+    
+    .btn-light-primary {
+        background-color: rgba(111, 78, 55, 0.1);
+        color: var(--primary-600);
+        border: none;
+    }
+</style>
 
 <?php require_once dirname(__DIR__) . '/includes/footer.php'; ?>

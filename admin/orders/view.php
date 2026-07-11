@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $newStatus = sanitize($_POST['status'] ?? '');
         if (in_array($newStatus, ['pending', 'confirmed', 'shipping', 'completed', 'cancelled'])) {
             try {
-                executeQuery($pdo, "UPDATE orders SET status = ? WHERE id = ?", [$newStatus, $orderId]);
+                executeQuery($pdo, "UPDATE orders SET status = ?, user_id = ? WHERE id = ?", [$newStatus, $_SESSION['user_id'], $orderId]);
                 setMessage('success', 'Cập nhật trạng thái thành công!');
             } catch (Exception $e) {
                 setMessage('danger', 'Có lỗi xảy ra: ' . $e->getMessage());
@@ -47,9 +47,9 @@ if (!$order) {
 
 // Get order details
 $orderDetails = fetchAll($pdo, "
-    SELECT od.*, m.name as medicine_name, m.code as medicine_code, m.unit
+    SELECT od.*, p.name as product_name, p.code as product_code, p.unit
     FROM order_details od
-    JOIN medicines m ON od.medicine_id = m.id
+    JOIN products p ON od.product_id = p.id
     WHERE od.order_id = ?
 ", [$orderId]);
 
@@ -173,11 +173,11 @@ require_once dirname(dirname(__DIR__)) . '/includes/header.php';
                                     <td class="ps-4">
                                         <div class="d-flex align-items-center">
                                             <div class="bg-light rounded p-2 me-3">
-                                                <i class="bi bi-capsule-pill text-primary"></i>
+                                                <i class="bi bi-cup-hot text-primary"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-medium"><?= htmlspecialchars($item['medicine_name']) ?></div>
-                                                <small class="text-muted">Mã: <?= htmlspecialchars($item['medicine_code']) ?></small>
+                                                <div class="fw-medium"><?= htmlspecialchars($item['product_name']) ?></div>
+                                                <small class="text-muted">Mã: <?= htmlspecialchars($item['product_code']) ?></small>
                                             </div>
                                         </div>
                                     </td>

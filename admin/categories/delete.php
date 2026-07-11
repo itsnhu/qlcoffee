@@ -12,7 +12,7 @@ requireAdmin();
 $categoryId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($categoryId <= 0) {
-    setMessage('danger', 'ID loại thuốc không hợp lệ!');
+    setMessage('danger', 'ID danh mục không hợp lệ!');
     redirect('/admin/categories/index.php');
 }
 
@@ -22,16 +22,16 @@ try {
     $category = fetchOne($pdo, $sql, [$categoryId]);
 
     if (!$category) {
-        setMessage('danger', 'Không tìm thấy loại thuốc!');
+        setMessage('danger', 'Không tìm thấy danh mục!');
         redirect('/admin/categories/index.php');
     }
 
     
-    $sql = "SELECT COUNT(*) as count FROM medicines WHERE category_id = ?";
+    $sql = "SELECT COUNT(*) as count FROM products WHERE category_id = ?";
     $result = fetchOne($pdo, $sql, [$categoryId]);
 
     if ($result['count'] > 0) {
-        setMessage('danger', 'Không thể xóa loại thuốc này vì có ' . $result['count'] . ' thuốc đang sử dụng!');
+        setMessage('danger', 'Không thể xóa danh mục này vì có ' . $result['count'] . ' món đang sử dụng!');
         redirect('/admin/categories/index.php');
     }
 
@@ -39,11 +39,11 @@ try {
     $sql = "DELETE FROM categories WHERE id = ?";
     executeQuery($pdo, $sql, [$categoryId]);
 
-    setMessage('success', 'Xóa loại thuốc "' . htmlspecialchars($category['name']) . '" thành công!');
+    setMessage('success', 'Xóa danh mục "' . htmlspecialchars($category['name']) . '" thành công!');
     redirect('/admin/categories/index.php');
 
 } catch (PDOException $e) {
     error_log("Delete Category Error: " . $e->getMessage());
-    setMessage('danger', 'Có lỗi khi xóa loại thuốc. Vui lòng thử lại.');
+    setMessage('danger', 'Có lỗi khi xóa danh mục. Vui lòng thử lại.');
     redirect('/admin/categories/index.php');
 }

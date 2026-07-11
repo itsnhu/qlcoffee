@@ -1,9 +1,9 @@
 <?php
 
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'pharmamanager');
+define('DB_NAME', 'coffeeshop_db');
 define('DB_USER', 'root');
-define('DB_PASS', 'root');
+define('DB_PASS', '');
 define('DB_CHARSET', 'utf8mb4');
 
 try {
@@ -43,5 +43,3 @@ function fetchAll($pdo, $sql, $params = []) {
     $stmt = executeQuery($pdo, $sql, $params);
     return $stmt->fetchAll();
 }
-
-?>
