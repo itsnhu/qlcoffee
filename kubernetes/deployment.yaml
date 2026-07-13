@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: coffee-web
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: coffee-web
+
+  template:
+    metadata:
+      labels:
+        app: coffee-web
+
+    spec:
+      containers:
+      - name: coffee-web
+        image: crqlcoffee2026.azurecr.io/coffee-web:v1
+
+        imagePullPolicy: Always
+
+        ports:
+        - containerPort: 80

@@ -1,6 +1,6 @@
 <?php
 
-define('DB_HOST', 'localhost');
+define('DB_HOST', 'mysql');
 define('DB_NAME', 'coffeeshop_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
