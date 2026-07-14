@@ -3,6 +3,7 @@ kind: Service
 
 metadata:
   name: coffee-service
+  namespace: default
 
 spec:
   type: LoadBalancer

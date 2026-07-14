@@ -3,6 +3,7 @@ kind: Service
 
 metadata:
   name: mysql
+  namespace: default
 
 spec:
   selector:

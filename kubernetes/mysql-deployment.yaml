@@ -3,6 +3,7 @@ kind: Deployment
 
 metadata:
   name: mysql
+  namespace: default
 
 spec:
   replicas: 1
@@ -34,3 +35,4 @@ spec:
 
         - name: MYSQL_DATABASE
           value: coffeeshop_db
+

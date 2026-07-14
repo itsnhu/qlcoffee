@@ -3,6 +3,7 @@ kind: Deployment
 
 metadata:
   name: coffee-web
+  namespace: default
 
 spec:
   replicas: 1
