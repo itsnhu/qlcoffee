@@ -24,7 +24,9 @@ jobs:
 
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }} .
+          docker build \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }} \
+            ./Coffee
 
       - name: Push Docker Image
         run: |
@@ -32,14 +34,14 @@ jobs:
 
       - name: Update Kubernetes Manifest
         run: |
-          sed -i "s|image: .*|image: ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }}|g" kubernetes/deployment.yaml
+          sed -i "s|image: .*|image: ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }}|g" Coffee/kubernetes/deployment.yaml
 
       - name: Commit Manifest
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
 
-          git add kubernetes/deployment.yaml
+          git add Coffee/kubernetes/deployment.yaml
 
           git diff --cached --quiet && exit 0
 
