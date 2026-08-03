@@ -1,0 +1,48 @@
+name: CI/CD to Azure AKS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to Azure Container Registry
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }} .
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }}
+
+      - name: Update Kubernetes Manifest
+        run: |
+          sed -i "s|image: .*|image: ${{ secrets.ACR_NAME }}.azurecr.io/coffee-web:${{ github.sha }}|g" kubernetes/deployment.yaml
+
+      - name: Commit Manifest
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+
+          git add kubernetes/deployment.yaml
+
+          git diff --cached --quiet && exit 0
+
+          git commit -m "Update image ${{ github.sha }} [skip ci]"
+
+          git push

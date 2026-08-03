@@ -1,0 +1,267 @@
+/* =============================================
+   POS SALES INTERFACE - COMPACT & REFINED
+   ============================================= */
+.pos-layout {
+    display: flex;
+    gap: 0.75rem;
+    height: 85vh;
+    overflow-y: auto;
+    margin-top: -15px;
+    background: #f1f5f9;
+    padding: 0.5rem;
+    border-radius: 12px;
+}
+
+.pos-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.pos-section-title {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--gray-700);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    padding-left: 0.25rem;
+}
+
+.x-small {
+    font-size: 0.65rem;
+}
+
+.form-control-xs,
+.form-select-xs {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+    border-radius: 4px;
+}
+
+.pos-card {
+    background: white;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.pos-scroll {
+    overflow-y: auto;
+    height: 100%;
+    padding-right: 4px;
+}
+
+.pos-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.pos-scroll::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+
+.pos-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+.pos-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Order Cards Left */
+.order-list-empty {
+    text-align: center;
+    padding: 1.5rem 0.5rem;
+    color: var(--gray-400);
+    font-size: 0.8rem;
+}
+
+.order-card-item {
+    background: white;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.order-card-item:hover,
+.order-card-item.active {
+    border-color: var(--primary-400);
+    background: #f0fdfa;
+    box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.05);
+}
+
+/* Product Selection Middle */
+.product-search {
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.product-search i {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-400);
+    font-size: 0.8rem;
+}
+
+.product-search input {
+    padding-left: 2.25rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
+}
+
+.pos-table-container {
+    border: 1px solid #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+}
+
+.pos-table {
+    margin-bottom: 0;
+    font-size: 0.85rem;
+}
+
+.pos-table thead th {
+    background: #f8fafc;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    border-bottom: 1px solid #f1f5f9;
+    padding: 0.5rem 0.6rem;
+}
+
+.pos-table td {
+    padding: 0.5rem 0.6rem;
+}
+
+/* Receipt Right */
+.receipt-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.receipt-header {
+    padding: 0.5rem;
+    border-bottom: 1px dashed var(--gray-200);
+    text-align: center;
+}
+
+.receipt-header h6 {
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.receipt-header small {
+    font-size: 0.65rem;
+}
+
+.receipt-body {
+    padding: 0.6rem;
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.receipt-footer {
+    padding: 0.6rem;
+    background: #f8fafc;
+    border-top: 1px solid var(--gray-200);
+    border-radius: 0 0 12px 12px;
+}
+
+.receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+    color: var(--gray-600);
+}
+
+.receipt-total-row.grand-total {
+    margin-top: 0.4rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid var(--gray-200);
+    color: var(--primary-700);
+    font-weight: 800;
+    font-size: 0.95rem;
+}
+
+/* POS Button Grid */
+.btn-pos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.35rem;
+}
+
+.btn-pos {
+    padding: 0.4rem;
+    font-weight: 600;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    font-size: 0.7rem;
+    border: 1px solid #f1f5f9;
+    background: white;
+    color: var(--gray-600);
+    transition: all 0.2s;
+}
+
+.btn-pos:hover {
+    background: #f8fafc;
+    border-color: var(--primary-400);
+    color: var(--primary-600);
+}
+
+.btn-pos i {
+    font-size: 1rem;
+}
+
+.btn-payment {
+    grid-column: span 2;
+    background: linear-gradient(135deg, var(--primary-600), var(--primary-700));
+    color: white;
+    border: none;
+    flex-direction: row;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    padding: 0.6rem;
+    margin-top: 0.2rem;
+}
+
+.btn-cancel {
+    grid-column: span 2;
+    background: transparent;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    padding: 0.4rem;
+    font-size: 0.7rem;
+}
+
+/* Hide global footer only on POS page */
+body.pos-page .footer-pharma {
+    display: none !important;
+}
+
+body.pos-page .content-body {
+    padding-bottom: 0 !important;
+}

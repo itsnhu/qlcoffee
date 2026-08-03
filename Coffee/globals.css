@@ -1,0 +1,102 @@
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+:root {
+  /* Premium Coffee Palette */
+  --color-coffee-dark: #2C1810;
+  /* Deep Espresso */
+  --color-coffee-medium: #4E342E;
+  /* Roasted Bean */
+  --color-coffee-light: #8D6E63;
+  /* Milk Chocolate */
+  --color-gold: #C6A87C;
+  /* Muted Luxury Gold */
+  --color-cream: #F5F5DC;
+  /* Foam/Cream */
+  --color-beige: #F9F7F2;
+  /* Lighter Background */
+  --color-white: #FFFFFF;
+  --color-text-main: #2C1810;
+  --color-text-muted: #6D5E57;
+
+  /* Typography - Optimized for Vietnamese */
+  --font-heading: 'Playfair Display', serif;
+  --font-subheading: 'Be Vietnam Pro', sans-serif;
+  /* Replaced Cinzel */
+  --font-body: 'Be Vietnam Pro', sans-serif;
+
+  /* Shadows & Effects */
+  --shadow-sm: 0 4px 6px rgba(44, 24, 16, 0.05);
+  --shadow-md: 0 8px 15px rgba(44, 24, 16, 0.08);
+  --shadow-lg: 0 20px 40px rgba(44, 24, 16, 0.12);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+  --backdrop-blur: blur(12px);
+
+  /* Spacing */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 50px;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.page-wrapper {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1 0 auto;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-beige);
+  color: var(--color-text-main);
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-coffee-dark);
+  font-weight: 700;
+}
+
+/* Utilities */
+.font-subheading {
+  font-family: var(--font-subheading);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.social-icon-footer {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
+}
+
+.social-icon-footer:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+}
