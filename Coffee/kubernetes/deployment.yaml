@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: coffee-web
-        image: crqlcoffee2026.azurecr.io/coffee-web:68852233b27adcac7a59335d80523f7a9ca87a18
+        image: crqlcoffee2026.azurecr.io/coffee-web:9766be4c2f92632573981beb9b93d52f39b059c4
 
         imagePullPolicy: Always
 
