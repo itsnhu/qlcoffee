@@ -16,7 +16,7 @@ try {
 <!-- Hero Section -->
 <section class="hero-premium" style="background-image: url('https://images.unsplash.com/photo-1497935586351-b67a49e012bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80');">
     <div class="hero-content">
-        <h1 class="hero-title" style="color: white !important; font-weight: 800; text-shadow: 0 4px 15px rgba(0,0,0,0.5);">Cà phê nghệ thuật</h1>
+        <h1 class="hero-title" style="color: white !important; font-weight: 800; text-shadow: 0 4px 15px rgba(0,0,0,0.5);">Chill Coffee</h1>
         <p class="hero-subtitle" style="color: white !important; font-weight: 500; opacity: 1;">Mỗi tách cà phê là một tác phẩm nghệ thuật, được pha chế từ những hạt cà phê thượng hạng nhất.</p>
         <div class="d-flex gap-3 justify-content-center">
             <a href="menu.php" class="btn btn-premium">
